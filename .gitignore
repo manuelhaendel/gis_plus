@@ -1,3 +1,16 @@
+####
+# Manus ignore stuff
+exercises/
+GisPlus*/
+images/
+'lectures'/
+notebooks/
+*.zip
+
+
+#####
+# From Github created ignore list for Python
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
