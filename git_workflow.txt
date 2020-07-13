@@ -4,7 +4,7 @@
 ## Whenever you want to get the changes other collaborators have pushed to the original repo:
 git pull
 
-## Whenever you want to push the changes you have done to the original repo:
+## Whenever you want to push the changes you have done locally to the original repo:
 git push
 
 
