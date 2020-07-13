@@ -1,0 +1,25 @@
+# Interacting with the remote repository
+# --------------
+
+## Whenever you want to get the changes other collaborators have pushed to the original repo:
+git pull
+
+## Whenever you want to push the changes you have done to the original repo:
+git push
+
+
+# Tracking changes in your local working copy
+# ---------------
+
+## To check the status of your working copy
+git status
+
+## Anything that shows up red, are files that have been changed and are not ready to commit yet,
+## anything in green are files that are ready to commit.
+
+## To make files ready to commit:
+git add filename1 filename2    # multiple files
+git add * 		       # all files
+
+## To commit files:
+git commit -m 'commit message'  # -m stands for message and means that the text  in between '' is used as the commit message.
