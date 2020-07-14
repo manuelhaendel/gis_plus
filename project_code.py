@@ -14,8 +14,8 @@ def bordercases(data, wsize_top, wsize_left, wsize_bot, wsize_right):
     # filling newdata array with zeros
     newdata = np.zeros(data.shape)
     
-    for col in range(np.size(data, 1)): # rows
-            for row in range(np.size(data, 0)):  # columns
+    for col in range(np.size(data, 1)): # columns
+            for row in range(np.size(data, 0)):  # rows
 
 
 
