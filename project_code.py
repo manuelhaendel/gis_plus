@@ -207,5 +207,6 @@ file = np.arange(60).reshape(10, 6)
 file2 = np.arange(start=60, stop=0, step=-1).reshape(10, 6) 
 print(file)
 
-print('retang \n', focsta(file, shape='retangular', height=3, width=4, border='buffer'))
+print('retang buffer border \n', focsta(file, shape='retangular', height=3, width=4, border='buffer'))
+print('retang default border \n', focsta(file, shape='retangular', height=3, width=4))
 #print('dia = 5 \n', focsta(file2, diameter=5))
