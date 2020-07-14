@@ -84,7 +84,7 @@ def squarefun(data, diameter):
     
               
     # diameter even -> central pixel is topleft
-    if diameter%2==0:
+    if diameter%2 == 0:
         
         #small window size
         small_wsize = int((diameter-2)/2) # for top and left window
@@ -105,14 +105,58 @@ def squarefun(data, diameter):
 
     return newdata
     
+# RETANGULAR #
+
+def retangfun(data, height, width):
+    data = np.array(data)
     
+    if height%2 == 0: # even height
+        
+        if width%2 == 0: # and even width
+            
+            top_wsize = int((height-2)/2)
+            bot_wsize = int((height)/2)
+            left_wsize = int((width-2)/2)
+            right_wsize = int((width)/2)
+            
+            newdata = bordercases(data, wsize_top = top_wsize, wsize_left = left_wsize, 
+                              wsize_bot = bot_wsize, wsize_right = right_wsize)
+        
+        else: # and odd width
+            
+            top_wsize = int((height-2)/2)
+            bot_wsize = int((height)/2)
+            width_wsize = int((width-1)/2)
+           
+            newdata = bordercases(data, wsize_top = top_wsize, wsize_left = width_wsize, 
+                              wsize_bot = bot_wsize, wsize_right = width_wsize)
+        
+    else: # odd height
+        
+        if width%2 == 0: # and even width
+            
+            height_wsize = int((height-1)/2)
+            left_wsize = int((width-2)/2)
+            right_wsize = int((width)/2)
+            
+            newdata = bordercases(data, wsize_top = height_wsize, wsize_left = left_wsize, 
+                              wsize_bot = height_wsize, wsize_right = right_wsize)
+            
+            
+        else: # and odd width
+            height_wsize = int((height-1)/2)
+            width_wsize = int((width-1)/2)
+            
+            newdata = bordercases(data, wsize_top = height_wsize, wsize_left = width_wsize, 
+                              wsize_bot = height_wsize, wsize_right = width_wsize)
     
-    
+    return newdata
+
     
 #################
-#  Endfunction  #- so far only works with square as a shape :)
+#  Endfunction  #
 #################
-def focsta(data, diameter, shape='square', start_angle=False, end_angle=False):
+def focsta(data, diameter=False, shape='square', height=False, width=False, start_angle=False, end_angle=False):
     
     data = np.array(data)
     
@@ -130,7 +174,7 @@ def focsta(data, diameter, shape='square', start_angle=False, end_angle=False):
     
     
     elif shape == 'retangular':
-        pass
+        return retangfun(data, height, width)
         
         
     elif shape == 'wedge':
@@ -140,6 +184,7 @@ def focsta(data, diameter, shape='square', start_angle=False, end_angle=False):
     
 file = np.arange(60).reshape(10, 6) 
 file2 = np.arange(start=60, stop=0, step=-1).reshape(10, 6) 
-
 print(file)
-print(focsta(file, diameter=3)) # please test other files and diameters boys!! :)
+
+print('retang \n', focsta(file, shape='retangular', height=4, width=3))
+#print('dia = 5 \n', focsta(file2, diameter=5))
