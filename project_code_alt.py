@@ -81,11 +81,6 @@ def get_values(data, neighborhood, row_processing, col_processing):
 
     """
     
-    if isinstance(neighborhood, rectangle):
-        x = col_processing - math.floor((neighborhood.width -1)/2)
-        y = row_processing - math.floor((neighborhood.height -1)/2)
-        values = data[y:y+neighborhood.height, x:x+neighborhood.width]
-    
     if isinstance(neighborhood, circle):
         
         distance = np.copy(data)
