@@ -24,38 +24,41 @@ def focal_statistics(in_data,
     
     # add padding to the input array
     if isinstance(neighborhood, rectangle):
-        p = max(neighborhood.width, neighborhood.height)
+        out_data = rectangfun(in_data, neighborhood.height,
+                              neighborhood.width, NoData)
         
     if isinstance(neighborhood, (circle, wedge)):
         p = neighborhood.radius
     
-    in_data = np.pad(in_data.astype(float), p, constant_values = None)
-    out_data = np.copy(in_data)
+        in_data = np.pad(in_data.astype(float), p, constant_values = None)
+        out_data = np.copy(in_data)
     
-    # determine indices of rows and columns of the input array inside the
-    # padded array
-    nrows = np.size(in_data, 0)
-    index_rows = range(0,nrows)[p:-p]
-    ncols = np.size(in_data, 1)
-    index_cols = range(0,ncols)[p:-p]
+        # determine indices of rows and columns of the input array inside the
+        # padded array
+        nrows = np.size(in_data, 0)
+        index_rows = range(0,nrows)[p:-p]
+        ncols = np.size(in_data, 1)
+        index_cols = range(0,ncols)[p:-p]
     
-    # loop through cells
-    for row in index_rows:
-        for col in index_cols:
+        # loop through cells
+        for row in index_rows:
+            for col in index_cols:
             
-            values = get_values(in_data, neighborhood, row, col)
-            """if row == 5 and col == 5:
-                return(values)"""
-        #values = in_data[window]
-            if NoData:
-                values = values[(np.isnan(values) == False)]
-                out_data[row, col] = function[statistic](values)
-            elif np.isnan(values).any():
-                out_data[row, col] = None
-            else:
-                out_data[row, col] = function[statistic](values)
+                values = get_values(in_data, neighborhood, row, col)
+                """if row == 5 and col == 5:
+                     return(values)"""
+            #values = in_data[window]
+                if NoData:
+                    values = values[(np.isnan(values) == False)]
+                    out_data[row, col] = function[statistic](values)
+                elif np.isnan(values).any():
+                    out_data[row, col] = None
+                else:
+                    out_data[row, col] = function[statistic](values)
+        
+        out_data = out_data[p:-p, p:-p]
     
-    return(out_data[p:-p, p:-p])
+    return(out_data)
 
 
 # helper functions
@@ -153,6 +156,132 @@ def get_angle(row_processing, col_processing, row, col):
     # quadrant bottom right
     if x >= 0 and y < 0:
         return 360 + math.degrees(math.asin(y / dist))
+
+
+# helper function for rectangles
+def rectangfun(data, height, width, NoData):
+    data = np.array(data)
+    
+    if height%2 == 0: # even height
+        
+        if width%2 == 0: # and even width
+            
+            top_wsize = int((height-2)/2)
+            bot_wsize = int((height)/2)
+            left_wsize = int((width-2)/2)
+            right_wsize = int((width)/2)
+            
+            newdata = bordercases(data, wsize_top = top_wsize, wsize_left = left_wsize, 
+                              wsize_bot = bot_wsize, wsize_right = right_wsize, NoData = NoData)
+        
+        else: # and odd width
+            
+            top_wsize = int((height-2)/2)
+            bot_wsize = int((height)/2)
+            width_wsize = int((width-1)/2)
+           
+            newdata = bordercases(data, wsize_top = top_wsize, wsize_left = width_wsize, 
+                              wsize_bot = bot_wsize, wsize_right = width_wsize, NoData = NoData)
+        
+    else: # odd height
+        
+        if width%2 == 0: # and even width
+            
+            height_wsize = int((height-1)/2)
+            left_wsize = int((width-2)/2)
+            right_wsize = int((width)/2)
+            
+            newdata = bordercases(data, wsize_top = height_wsize, wsize_left = left_wsize, 
+                              wsize_bot = height_wsize, wsize_right = right_wsize, NoData = NoData)
+            
+            
+        else: # and odd width
+            height_wsize = int((height-1)/2)
+            width_wsize = int((width-1)/2)
+            
+            newdata = bordercases(data, wsize_top = height_wsize, wsize_left = width_wsize, 
+                              wsize_bot = height_wsize, wsize_right = width_wsize, NoData = NoData)
+    
+    return newdata
+
+
+# border cases for rectangles
+def bordercases(data, wsize_top, wsize_left, wsize_bot, wsize_right, NoData): 
+    
+    # filling newdata array with zeros
+    newdata = np.zeros(data.shape)
+    
+    if NoData:
+    
+        for col in range(np.size(data, 1)): # rows
+                for row in range(np.size(data, 0)):  # columns
+    
+    
+    
+                    ### border cases ###
+    
+                    # all corners:
+                    if col < wsize_left and row < wsize_top: # topleft
+                        window = data[:row+wsize_bot+1, :col+wsize_right+1]
+                        #print('bot in topleft case \n', bot)
+    
+                    elif col < wsize_left and row >= np.size(data, 0)-wsize_bot: # botleft
+                        window = data[row-wsize_top:, :col+wsize_right+1]
+                        #print('top in botleft case \n', top)
+    
+    
+                    elif col >= np.size(data, 1)-wsize_right and row < wsize_top: # topright
+                        window = data[:row+wsize_bot+1, col-wsize_left:]
+                        #print('bot in the topright case \n', bot)
+    
+                    elif col >= np.size(data, 1)-wsize_right and row >= np.size(data, 0)-wsize_bot: # botright
+                        window = data[row-wsize_top:, col-wsize_left:]
+                        #print('top in the botright case \n', top)
+    
+    
+                    # all borders:
+                    elif col < wsize_left: # left border
+                        window = data[row-wsize_top:row+wsize_bot+1, :col+(wsize_right)+1]
+                        #print('left border case: \n', middle)
+    
+                    elif row >= np.size(data, 0)-wsize_bot: # bot border
+                        window = data[row-wsize_top:, col-wsize_left:col+wsize_right+1]
+                        #print('bot border case \n', middle)
+    
+                    elif col >= np.size(data, 1)-wsize_right: # right border
+                        window = data[row-wsize_top:row+wsize_bot+1, col-wsize_left:]
+                        #print('right border case \n', middle)
+    
+                    elif row < wsize_top: # top border
+                         window = data[:row+wsize_bot+1, col-wsize_left:col+wsize_right+1]
+                        #print('top border case \n', middle)
+    
+    
+    
+                    else: # normal case
+                        window = data[row-wsize_top:row+wsize_bot+1, col-wsize_left:col+wsize_right+1]
+                        #print('normal case \n', middle)
+    
+    
+                    # finding the maximum
+                    newdata[row, col] = np.max(window)
+                    #print(newdata)    
+                    
+    else:
+        
+        for col in range(np.size(data, 1)): # rows
+            for row in range(np.size(data, 0)):        
+        
+                if  row < np.size(data, 0)-wsize_bot and row >= wsize_top and col < np.size(data, 1)-wsize_right and col >= wsize_left: # normal case
+                    window = data[row-wsize_top:row+wsize_bot+1, col-wsize_left:col+wsize_right+1]
+                    
+                    newdata[row, col] = np.max(window)
+                    
+                else: # buffer zone
+                    newdata[row, col] = None
+            
+    
+    return newdata
 
 # dictionary with summary statistics
 function = {
