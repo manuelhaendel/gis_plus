@@ -8,10 +8,9 @@ Created on Tue Jul 14 21:38:26 2020
 
 import numpy as np
 import math
-from circles import *
 from neighborhoods import *
-from functions import *
 
+# main function
 def focal_statistics(in_data,
                      neighborhood = rectangle(3,3),
                      statistic    = "mean",
@@ -57,6 +56,109 @@ def focal_statistics(in_data,
                 out_data[row, col] = function[statistic](values)
     
     return(out_data[p:-p, p:-p])
+
+
+# helper functions
+def get_values(data, neighborhood, row_processing, col_processing):
+    """
+    Selects cells for the neighborhood window.
+
+    Parameters
+    ----------
+    position : array
+        Two dimensional array, giving the x- and y-position of the processing 
+        cell.
+    shape : string
+        Defines the neighborhood type.
+    
+
+    Returns
+    -------
+    None.
+
+    """
+    
+    if isinstance(neighborhood, rectangle):
+        x = col_processing - math.floor((neighborhood.width -1)/2)
+        y = row_processing - math.floor((neighborhood.height -1)/2)
+        values = data[y:y+neighborhood.height, x:x+neighborhood.width]
+    
+    if isinstance(neighborhood, circle):
+        
+        distance = np.copy(data)
+        
+        for col in range(np.size(data, 1)): # columns
+            for row in range(np.size(data, 0)):  # rows
+            
+                distance[row,col] = math.sqrt(abs(row_processing - row)**2 + 
+                                              abs(col_processing - col)**2)
+        
+        window = np.where(distance <= neighborhood.radius)
+        values = data[window]
+    
+    if isinstance(neighborhood, wedge):
+        
+        distance = np.copy(data)
+        angle = np.copy(data)
+        
+        for col in range(np.size(data, 1)): # columns
+            for row in range(np.size(data, 0)):  # rows
+            
+                distance[row,col] = math.sqrt(abs(row_processing - row)**2 +
+                                              abs(col_processing - col)**2)
+                
+                angle[row,col] = round(get_angle(row_processing, col_processing, row, col), 2)
+        
+        # return angle
+        window = np.where((distance <= neighborhood.radius) & 
+                          (angle >= neighborhood.start) &
+                          (angle <= neighborhood.end))
+        
+        """
+        The angle of the processing cell is always set to 0°. But when the 
+        start and end angle don't encompass 0°, the processing cell would not
+        be included in the window. Therefore it has to be appended manually.
+        """
+        window = (np.append(window[0], row_processing),
+                  np.append(window[1], col_processing)) 
+        
+        values = data[window]
+    
+    return values
+
+
+def get_angle(row_processing, col_processing, row, col):
+    
+    x = col - col_processing  
+    y = row_processing - row
+    dist = math.sqrt(abs(row_processing - row)**2 +
+                                              abs(col_processing - col)**2)
+    
+    # same cell
+    if x == 0 and y == 0:
+        return 0
+    
+    # quadrant upper right
+    if x > 0 and y >= 0:
+        return math.degrees(math.asin(y / dist))
+    
+    # quadrant upper left
+    if x <= 0 and y > 0:
+        return 180 - math.degrees(math.asin(y / dist))
+    
+    # quadrant bottom left
+    if x < 0 and y <= 0:
+        return 180 - math.degrees(math.asin(y / dist))
+    
+    # quadrant bottom right
+    if x >= 0 and y < 0:
+        return 360 + math.degrees(math.asin(y / dist))
+
+# dictionary with summary statistics
+function = {
+    "min": np.min,
+    "max": np.max,
+    "mean": np.mean}
     
         
 file = np.arange(60).reshape(10, 6) 
