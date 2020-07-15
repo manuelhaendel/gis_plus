@@ -160,7 +160,9 @@ function = {
     "max": np.max,
     "mean": np.mean}
     
-        
+
+
+######## code to test the functions
 file = np.arange(60).reshape(10, 6) 
 print(file)
 
