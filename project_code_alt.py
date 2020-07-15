@@ -8,33 +8,79 @@ Created on Tue Jul 14 21:38:26 2020
 
 import numpy as np
 import math
-from neighborhoods import *
+
+from neighborhoods import Rectangle, Circle, Wedge
 
 # main function
 def focal_statistics(in_data,
-                     neighborhood = rectangle(3,3),
-                     statistic    = "mean",
-                     NoData       = True):
+                     neighborhood  = Rectangle(3,3),
+                     statistic     = "mean",
+                     ignore_nodata = True):
+    """
     
-    if not isinstance(neighborhood, (rectangle, circle, wedge)):
+
+    Parameters
+    ----------
+    in_data : numpy array
+        The array to perform the focal statistics calculations on.
+    neighborhood : neighborhood class, optional
+        The Neighborhood class dictates the shape of the area around
+        each cell used to calculate the statistic. 
+        
+        The different types of neighborhood available are Rectangle,
+        Circle and Wedge. The default is Rectangle(3,3).
+    statistic : string, optional
+        The statistic type to be calculated.
+        
+        mean — Calculates the mean (average value) of the cells in the
+               neighborhood. This is the default.
+        max  — Calculates the maximum (largest value) of the cells
+               in the neighborhood.
+        min  — Calculates the minimum (smallest value) of the cells
+               in the neighborhood.
+        std  — Calculates the standard deviation of the cells in the
+               neighborhood.
+        var  — Calculates the variance of the cells in the neighborhood.
+    ignore_nodata : boolean, optional
+        Denotes whether NoData values are ignored by the statistic
+        calculation.
+        
+        True  — Specifies that if a NoData value exists within a
+                neighborhood, the NoData value will be ignored. Only cells
+                within the neighborhood that have data values will be
+                used in determining the output value. This is the default.
+        False — Specifies that if any cell in a neighborhood has a value
+                of NoData, the output for the processing cell will be
+                NoData. With this option, the presence of a NoData value
+                implies that there is insufficient information to
+                determine the statistic value for the neighborhood.
+
+    Returns
+    -------
+    out_data : numpy array
+        The output focal statistics array.
+
+    """
+    
+    if not isinstance(neighborhood, (Rectangle, Circle, Wedge)):
         raise ValueError('Neighborhood class not implemented.')
     
     if statistic not in ('min', 'max', 'mean', 'dev', 'var'):
         raise ValueError('Statistic not implemented.')
     
     # add padding to the input array
-    if isinstance(neighborhood, rectangle):
+    if isinstance(neighborhood, Rectangle):
         out_data = rectangfun(in_data, neighborhood.height,
-                              neighborhood.width, NoData)
+                              neighborhood.width, ignore_nodata)
         
-    if isinstance(neighborhood, (circle, wedge)):
+    if isinstance(neighborhood, (Circle, Wedge)):
         p = neighborhood.radius
     
         in_data = np.pad(in_data.astype(float), p, constant_values = None)
         out_data = np.copy(in_data)
     
-        # determine indices of rows and columns of the input array inside the
-        # padded array
+        # determine indices of rows and columns of the input array 
+        # inside the padded array
         nrows = np.size(in_data, 0)
         index_rows = range(0,nrows)[p:-p]
         ncols = np.size(in_data, 1)
@@ -48,7 +94,7 @@ def focal_statistics(in_data,
                 """if row == 5 and col == 5:
                      return(values)"""
             #values = in_data[window]
-                if NoData:
+                if ignore_nodata:
                     values = values[(np.isnan(values) == False)]
                     out_data[row, col] = function[statistic](values)
                 elif np.isnan(values).any():
@@ -64,37 +110,28 @@ def focal_statistics(in_data,
 # helper functions
 def get_values(data, neighborhood, row_processing, col_processing):
     """
-    Selects cells for the neighborhood window.
-
-    Parameters
-    ----------
-    position : array
-        Two dimensional array, giving the x- and y-position of the processing 
-        cell.
-    shape : string
-        Defines the neighborhood type.
-    
+    Returns the values of the cells determined by the neighborhood.
 
     Returns
     -------
-    None.
+    values : numpy.array
 
     """
     
-    if isinstance(neighborhood, circle):
+    if isinstance(neighborhood, Circle):
         
         distance = np.copy(data)
         
-        for col in range(np.size(data, 1)): # columns
-            for row in range(np.size(data, 0)):  # rows
+        for col in range(np.size(data, 1)): 
+            for row in range(np.size(data, 0)):
             
-                distance[row,col] = math.sqrt(abs(row_processing - row)**2 + 
-                                              abs(col_processing - col)**2)
+                distance[row,col] = math.sqrt((row_processing - row)**2
+                                              + (col_processing - col)**2)
         
         window = np.where(distance <= neighborhood.radius)
         values = data[window]
     
-    if isinstance(neighborhood, wedge):
+    if isinstance(neighborhood, Wedge):
         
         distance = np.copy(data)
         angle = np.copy(data)
@@ -102,21 +139,20 @@ def get_values(data, neighborhood, row_processing, col_processing):
         for col in range(np.size(data, 1)): # columns
             for row in range(np.size(data, 0)):  # rows
             
-                distance[row,col] = math.sqrt(abs(row_processing - row)**2 +
-                                              abs(col_processing - col)**2)
+                distance[row,col] = math.sqrt((row_processing - row)**2
+                                              + (col_processing - col)**2)
                 
-                angle[row,col] = round(get_angle(row_processing, col_processing, row, col), 2)
+                angle[row,col] = get_angle(row_processing, col_processing,
+                                           row, col)
         
-        # return angle
-        window = np.where((distance <= neighborhood.radius) & 
-                          (angle >= neighborhood.start) &
-                          (angle <= neighborhood.end))
+        window = np.where((distance <= neighborhood.radius)
+                          & (angle >= neighborhood.start)
+                          & (angle <= neighborhood.end))
         
-        """
-        The angle of the processing cell is always set to 0°. But when the 
-        start and end angle don't encompass 0°, the processing cell would not
-        be included in the window. Therefore it has to be appended manually.
-        """
+        # The angle of the processing cell is always set to 0°. But when
+        # the start and end angle don't encompass 0°, the processing
+        # cell would not be included in the window. Therefore it has to
+        # be appended manually.
         window = (np.append(window[0], row_processing),
                   np.append(window[1], col_processing)) 
         
@@ -126,6 +162,16 @@ def get_values(data, neighborhood, row_processing, col_processing):
 
 
 def get_angle(row_processing, col_processing, row, col):
+    """
+    Returns the angle in arithmetic degrees, between the processing cell
+    and the cell of the current loop iteration. The angle extends 
+    counterclockwise from 0 to 360, where 0 is on the positive x-axis.
+
+    Returns
+    -------
+    angle : float
+    """
+    
     
     x = col - col_processing  
     y = row_processing - row
@@ -153,8 +199,8 @@ def get_angle(row_processing, col_processing, row, col):
         return 360 + math.degrees(math.asin(y / dist))
 
 
-# helper function for rectangles
-def rectangfun(data, height, width, NoData):
+# Helper function for Rectangle neighborhood.
+def rectangfun(data, height, width, ignore_nodata):
     data = np.array(data)
     
     if height%2 == 0: # even height
@@ -166,8 +212,12 @@ def rectangfun(data, height, width, NoData):
             left_wsize = int((width-2)/2)
             right_wsize = int((width)/2)
             
-            newdata = bordercases(data, wsize_top = top_wsize, wsize_left = left_wsize, 
-                              wsize_bot = bot_wsize, wsize_right = right_wsize, NoData = NoData)
+            newdata = bordercases(data,
+                                  wsize_top     = top_wsize,
+                                  wsize_left    = left_wsize,
+                                  wsize_bot     = bot_wsize,
+                                  wsize_right   = right_wsize, 
+                                  ignore_nodata = ignore_nodata)
         
         else: # and odd width
             
@@ -175,8 +225,12 @@ def rectangfun(data, height, width, NoData):
             bot_wsize = int((height)/2)
             width_wsize = int((width-1)/2)
            
-            newdata = bordercases(data, wsize_top = top_wsize, wsize_left = width_wsize, 
-                              wsize_bot = bot_wsize, wsize_right = width_wsize, NoData = NoData)
+            newdata = bordercases(data,
+                                  wsize_top     = top_wsize,
+                                  wsize_left    = width_wsize,
+                                  wsize_bot     = bot_wsize,
+                                  wsize_right   = width_wsize, 
+                                  ignore_nodata = ignore_nodata)
         
     else: # odd height
         
@@ -186,27 +240,36 @@ def rectangfun(data, height, width, NoData):
             left_wsize = int((width-2)/2)
             right_wsize = int((width)/2)
             
-            newdata = bordercases(data, wsize_top = height_wsize, wsize_left = left_wsize, 
-                              wsize_bot = height_wsize, wsize_right = right_wsize, NoData = NoData)
+            newdata = bordercases(data,
+                                  wsize_top     = height_wsize,
+                                  wsize_left    = left_wsize,
+                                  wsize_bot     = height_wsize,
+                                  wsize_right   = right_wsize, 
+                                  ignore_nodata = ignore_nodata)
             
             
         else: # and odd width
             height_wsize = int((height-1)/2)
             width_wsize = int((width-1)/2)
             
-            newdata = bordercases(data, wsize_top = height_wsize, wsize_left = width_wsize, 
-                              wsize_bot = height_wsize, wsize_right = width_wsize, NoData = NoData)
+            newdata = bordercases(data,
+                                  wsize_top     = height_wsize,
+                                  wsize_left    = width_wsize,
+                                  wsize_bot     = height_wsize,
+                                  wsize_right   = width_wsize, 
+                                  ignore_nodata = ignore_nodata)
     
     return newdata
 
 
-# border cases for rectangles
-def bordercases(data, wsize_top, wsize_left, wsize_bot, wsize_right, NoData): 
+# Border cases for Rectangle neighborhood.
+def bordercases(data, wsize_top, wsize_left,
+                wsize_bot, wsize_right, ignore_nodata): 
     
     # filling newdata array with zeros
     newdata = np.zeros(data.shape)
     
-    if NoData:
+    if ignore_nodata:
     
         for col in range(np.size(data, 1)): # rows
                 for row in range(np.size(data, 0)):  # columns
@@ -220,41 +283,49 @@ def bordercases(data, wsize_top, wsize_left, wsize_bot, wsize_right, NoData):
                         window = data[:row+wsize_bot+1, :col+wsize_right+1]
                         #print('bot in topleft case \n', bot)
     
-                    elif col < wsize_left and row >= np.size(data, 0)-wsize_bot: # botleft
+                    elif (col < wsize_left
+                          and row >= np.size(data, 0)-wsize_bot): # botleft
                         window = data[row-wsize_top:, :col+wsize_right+1]
                         #print('top in botleft case \n', top)
     
     
-                    elif col >= np.size(data, 1)-wsize_right and row < wsize_top: # topright
+                    elif (col >= np.size(data, 1)-wsize_right
+                          and row < wsize_top): # topright
                         window = data[:row+wsize_bot+1, col-wsize_left:]
                         #print('bot in the topright case \n', bot)
     
-                    elif col >= np.size(data, 1)-wsize_right and row >= np.size(data, 0)-wsize_bot: # botright
+                    elif (col >= np.size(data, 1)-wsize_right
+                          and row >= np.size(data, 0)-wsize_bot): # botright
                         window = data[row-wsize_top:, col-wsize_left:]
                         #print('top in the botright case \n', top)
     
     
                     # all borders:
                     elif col < wsize_left: # left border
-                        window = data[row-wsize_top:row+wsize_bot+1, :col+(wsize_right)+1]
+                        window = data[row-wsize_top:row+wsize_bot+1,
+                                      :col+(wsize_right)+1]
                         #print('left border case: \n', middle)
     
                     elif row >= np.size(data, 0)-wsize_bot: # bot border
-                        window = data[row-wsize_top:, col-wsize_left:col+wsize_right+1]
+                        window = data[row-wsize_top:,
+                                      col-wsize_left:col+wsize_right+1]
                         #print('bot border case \n', middle)
     
                     elif col >= np.size(data, 1)-wsize_right: # right border
-                        window = data[row-wsize_top:row+wsize_bot+1, col-wsize_left:]
+                        window = data[row-wsize_top:row+wsize_bot+1,
+                                      col-wsize_left:]
                         #print('right border case \n', middle)
     
                     elif row < wsize_top: # top border
-                         window = data[:row+wsize_bot+1, col-wsize_left:col+wsize_right+1]
+                         window = data[:row+wsize_bot+1,
+                                       col-wsize_left:col+wsize_right+1]
                         #print('top border case \n', middle)
     
     
     
                     else: # normal case
-                        window = data[row-wsize_top:row+wsize_bot+1, col-wsize_left:col+wsize_right+1]
+                        window = data[row-wsize_top:row+wsize_bot+1,
+                                      col-wsize_left:col+wsize_right+1]
                         #print('normal case \n', middle)
     
     
@@ -267,8 +338,12 @@ def bordercases(data, wsize_top, wsize_left, wsize_bot, wsize_right, NoData):
         for col in range(np.size(data, 1)): # rows
             for row in range(np.size(data, 0)):        
         
-                if  row < np.size(data, 0)-wsize_bot and row >= wsize_top and col < np.size(data, 1)-wsize_right and col >= wsize_left: # normal case
-                    window = data[row-wsize_top:row+wsize_bot+1, col-wsize_left:col+wsize_right+1]
+                if (row < np.size(data, 0)-wsize_bot
+                      and row >= wsize_top
+                      and col < np.size(data, 1)-wsize_right
+                      and col >= wsize_left): # normal case
+                    window = data[row-wsize_top:row+wsize_bot+1,
+                                  col-wsize_left:col+wsize_right+1]
                     
                     newdata[row, col] = np.max(window)
                     
@@ -282,7 +357,8 @@ def bordercases(data, wsize_top, wsize_left, wsize_bot, wsize_right, NoData):
 function = {
     "min": np.min,
     "max": np.max,
-    "mean": np.mean}
+    "mean": np.mean
+    }
     
 
 
@@ -290,13 +366,13 @@ function = {
 file = np.arange(60).reshape(10, 6) 
 print(file)
 
-out = focal_statistics(file, rectangle(4,3), 'max', False)
+out = focal_statistics(file, Rectangle(4,3), 'max', False)
 print('rectang buffer border \n', out)
-out = focal_statistics(file, rectangle(4,3), 'max', True)
+out = focal_statistics(file, Rectangle(4,3), 'max', True)
 print('rcetang default border \n', out)
   
 
-out = focal_statistics(file, circle(3), "max")
+out = focal_statistics(file, Circle(3), "max")
 print('circle default border \n', out)
 
 import matplotlib.pyplot as plt
