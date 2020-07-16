@@ -5,7 +5,7 @@ Created on Tue Jul 14 21:52:45 2020
 @author: Brigitte Häuser, Guilherme Arruda, Manuel Händel
 
 Class definitions for the different neighborhood types. Three types have
-been implemented, each with different attributes that define the 
+been implemented, each with different attributes that define the
 neighborhood.
 """
 

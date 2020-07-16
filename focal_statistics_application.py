@@ -10,8 +10,8 @@ necessary modules. To inspect the functions and classes open the
 corresponding scripts or display their documentation in the console.
 """
 
-import os
 import numpy as np
+import os
 path = input(("Enter the path to the working directory\n"
               "(location of focal_statistics modules):\n"), )
 os.chdir(path)
@@ -21,9 +21,8 @@ from functions import (focal_statistics, get_values,
 from classes import Rectangle, Circle, Wedge
 
 # run the focal_statistics with some example code
-file = np.arange(60).reshape(10, 6) 
+file = np.arange(150).reshape(15, 10) 
 print(file)
-
 out = focal_statistics(file, Rectangle(4,3), 'max')
 print('rectang default border \n', out)
 
@@ -32,4 +31,11 @@ print('circle default border \n', out)
 
 out = focal_statistics(file, Wedge(3, 0, 90), "max")
 print('wedge default border \n', out)
+
+
+out = get_values(file, Wedge(3, 45, 180), 7, 5, show_window = 1)
+print('Display window \n', out[0])
+print('Display distance \n', out[1])
+print('Display angle \n', out[2])
+
 

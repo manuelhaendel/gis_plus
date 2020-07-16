@@ -4,23 +4,24 @@ Created on Tue Jul 14 21:38:26 2020
 
 @author: Brigitte Häuser, Guilherme Arruda, Manuel Händel
 
-Function definitions for the focal statistics project. The main function 
-'focal_statistics()' calls the helper functions: 'get_values()', 
-'get_angle()', 'get_newdata()' and 'rectangfun()'. The dictionary 
+Function definitions for the focal statistics project. The main function
+'focal_statistics()' calls the helper functions: 'get_values()',
+'get_angle()', 'get_newdata()' and 'rectangfun()'. The dictionary
 'function' stores the different statistics that can be applied to the
 cell values.
 """
 
-import numpy as np
 import math
+import numpy as np
 
 from classes import Rectangle, Circle, Wedge
 
 # main function
 def focal_statistics(in_data,
-                     neighborhood  = Rectangle(3,3),
+                     neighborhood  = Rectangle(3, 3),
                      statistic     = "mean",
-                     ignore_nodata = True):
+                     ignore_nodata = True
+                     ):
     """
 
     Parameters
@@ -30,7 +31,7 @@ def focal_statistics(in_data,
         The array to perform the focal statistics calculations on.
     neighborhood : neighborhood class, optional
         The Neighborhood class dictates the shape of the area around
-        each cell used to calculate the statistic. 
+        each cell used to calculate the statistic.
         
         The different types of neighborhood available are Rectangle,
         Circle and Wedge. The default is Rectangle(3,3).
@@ -81,40 +82,41 @@ def focal_statistics(in_data,
     if isinstance(neighborhood, (Circle, Wedge)):
         p = neighborhood.radius
     
-        in_data = np.pad(in_data.astype(float), p, constant_values = None)
+        in_data = np.pad(in_data.astype(float), p, constant_values=None)
         out_data = np.copy(in_data)
     
-        # determine indices of rows and columns of the input array 
+        # determine indices of rows and columns of the input array
         # inside the padded array
         nrows = np.size(in_data, 0)
-        index_rows = range(0,nrows)[p:-p]
+        index_rows = range(0, nrows)[p:-p]
         ncols = np.size(in_data, 1)
-        index_cols = range(0,ncols)[p:-p]
+        index_cols = range(0, ncols)[p:-p]
     
         # loop through cells
         for row in index_rows:
             for col in index_cols:
             
                 values = get_values(in_data, neighborhood, row, col)
-                """if row == 5 and col == 5:
-                     return(values)"""
-            #values = in_data[window]
+
                 if ignore_nodata:
-                    values = values[(np.isnan(values) == False)]
+                    values = values[np.invert(np.isnan(values))]
                     out_data[row, col] = function[statistic](values)
+                
                 elif np.isnan(values).any():
                     out_data[row, col] = None
+                
                 else:
                     out_data[row, col] = function[statistic](values)
         
         out_data = out_data[p:-p, p:-p]
     
-    return(out_data)
+    return out_data
 
 
 
 # helper functions for Circle and Wedge neighborhood
-def get_values(data, neighborhood, row_processing, col_processing):
+def get_values(data, neighborhood, row_processing, col_processing,
+               show_window=False):
     """
     Returns the values of the cells determined by the neighborhood.
 
@@ -126,31 +128,65 @@ def get_values(data, neighborhood, row_processing, col_processing):
     
     if isinstance(neighborhood, Circle):
         
-        distance = np.copy(data)
+        distance = np.copy(data.astype(float))
         
         for col in range(np.size(data, 1)): 
             for row in range(np.size(data, 0)):
             
-                distance[row,col] = math.sqrt((row_processing - row)**2
-                                              + (col_processing - col)**2)
+                distance[row, col] = math.sqrt((row_processing - row)**2
+                                               + (col_processing - col)**2)
         
+        # to avoid rounding errors
+        distance = np.round(distance, 2)
+        
+        # selecting cells that fall into the window.
         window = np.where(distance <= neighborhood.radius)
-        values = data[window]
+        
+        # debugging feature
+        if show_window:
+            values = np.copy(data)
+            values[window] = show_window
+        
+        else:
+            values = data[window]
     
     if isinstance(neighborhood, Wedge):
         
-        distance = np.copy(data)
-        angle = np.copy(data)
+        distance = np.copy(data.astype(float))
+        angle = np.copy(data.astype(float))
         
-        for col in range(np.size(data, 1)): # columns
-            for row in range(np.size(data, 0)):  # rows
+        
+        
+        for col in range(np.size(data, 1)):
+            for row in range(np.size(data, 0)):
             
-                distance[row,col] = math.sqrt((row_processing - row)**2
-                                              + (col_processing - col)**2)
+                distance[row, col] = math.sqrt((row_processing - row)**2
+                                               + (col_processing - col)**2)
                 
-                angle[row,col] = get_angle(row_processing, col_processing,
-                                           row, col)
+                angle[row, col] = get_angle(row_processing, col_processing,
+                                            row, col)
         
+        # to avoid rounding errors
+        distance = np.round(distance, 2)
+        angle = np.round(angle, 2)
+        
+        # When the positive x-axis is included in the wedge, the end
+        # angle is smaller than the start angle. In this case all the
+        # angles between 0° and the end angle must be increased by 360°
+        # so the condition for selecting the window works as intended.
+        if neighborhood.start > neighborhood.end:
+                    
+            condition = (angle >= 0) & (angle <= neighborhood.end)
+            angle = np.where(condition, angle + 360, angle)
+            neighborhood.end = neighborhood.end + 360
+        
+        # The positive x-axis has an angle of 0°. It must be set
+        # to 360°, when the end angle is exactly 360°, so the condition
+        # for selecting the window works as intended.
+        if neighborhood.end == 360:
+            angle = np.where(angle == 0, 360, angle)
+        
+        # selecting cells that fall into the window.
         window = np.where((distance <= neighborhood.radius)
                           & (angle >= neighborhood.start)
                           & (angle <= neighborhood.end))
@@ -160,17 +196,24 @@ def get_values(data, neighborhood, row_processing, col_processing):
         # cell would not be included in the window. Therefore it has to
         # be appended manually.
         window = (np.append(window[0], row_processing),
-                  np.append(window[1], col_processing)) 
+                  np.append(window[1], col_processing))
         
-        values = data[window]
-    
+        # debugging feature
+        if show_window:
+            values = np.copy(data)
+            values[window] = show_window
+            values = (values, distance, angle)
+        
+        else:
+            values = data[window]
+            
     return values
 
 
 def get_angle(row_processing, col_processing, row, col):
     """
     Returns the angle in arithmetic degrees, between the processing cell
-    and the cell of the current loop iteration. The angle extends 
+    and the cell of the current loop iteration. The angle extends
     counterclockwise from 0 to 360, where 0 is on the positive x-axis.
 
     Returns
@@ -179,10 +222,10 @@ def get_angle(row_processing, col_processing, row, col):
     """
     
     
-    x = col - col_processing  
+    x = col - col_processing
     y = row_processing - row
-    dist = math.sqrt(abs(row_processing - row)**2 +
-                                              abs(col_processing - col)**2)
+    dist = math.sqrt((row_processing - row)**2
+                     + (col_processing - col)**2)
     
     # same cell
     if x == 0 and y == 0:
@@ -211,7 +254,7 @@ def rectangfun(data, height, width, statistic, ignore_nodata):
     
     
     """
-    Helper function for rectangle neighborhood with different calculations 
+    Helper function for rectangle neighborhood with different calculations
     for even and odd heights / widths.
 
     Parameters
@@ -223,10 +266,10 @@ def rectangfun(data, height, width, statistic, ignore_nodata):
     
     width          width of the rectangular in pixels
 
-    statistic:     The statistic type to be calculated. 
+    statistic:     The statistic type to be calculated.
                    mean, max, min, std or var
     
-    ignore_nodata: Denotes whether NoData values are ignored by the statistic 
+    ignore_nodata: Denotes whether NoData values are ignored by the statistic
                    calculation.
          
 
@@ -253,7 +296,7 @@ def rectangfun(data, height, width, statistic, ignore_nodata):
                                   wsize_top     = top_wsize,
                                   wsize_left    = left_wsize,
                                   wsize_bot     = bot_wsize,
-                                  wsize_right   = right_wsize, 
+                                  wsize_right   = right_wsize,
                                   statistic     = statistic,
                                   ignore_nodata = ignore_nodata)
         
@@ -267,7 +310,7 @@ def rectangfun(data, height, width, statistic, ignore_nodata):
                                   wsize_top     = top_wsize,
                                   wsize_left    = width_wsize,
                                   wsize_bot     = bot_wsize,
-                                  wsize_right   = width_wsize, 
+                                  wsize_right   = width_wsize,
                                   statistic     = statistic,
                                   ignore_nodata = ignore_nodata)
         
@@ -283,7 +326,7 @@ def rectangfun(data, height, width, statistic, ignore_nodata):
                                   wsize_top     = height_wsize,
                                   wsize_left    = left_wsize,
                                   wsize_bot     = height_wsize,
-                                  wsize_right   = right_wsize, 
+                                  wsize_right   = right_wsize,
                                   statistic     = statistic,
                                   ignore_nodata = ignore_nodata)
             
@@ -296,7 +339,7 @@ def rectangfun(data, height, width, statistic, ignore_nodata):
                                   wsize_top     = height_wsize,
                                   wsize_left    = width_wsize,
                                   wsize_bot     = height_wsize,
-                                  wsize_right   = width_wsize, 
+                                  wsize_right   = width_wsize,
                                   statistic     = statistic,
                                   ignore_nodata = ignore_nodata)
     
@@ -308,7 +351,7 @@ def get_newdata(data, wsize_top, wsize_left,
                 wsize_bot, wsize_right, statistic, ignore_nodata): 
     
     """
-    Calculates the values of the cells determined by a specific function 
+    Calculates the values of the cells determined by a specific function
     from a rectangle neighborhood
 
     Parameters
@@ -316,22 +359,22 @@ def get_newdata(data, wsize_top, wsize_left,
     data :         numpy array
                    The array to perform the focal statistics calculations on.
         
-    wsize_top:     The window size; distance in pixels from central pixel to 
+    wsize_top:     The window size; distance in pixels from central pixel to
                    top end of the neighborhood.
     
     wsize_left:    The window size; distance in pixels from central pixel to 
                    left end of the neighborhood.
                 
-    wsize_bot:     The window size; distance in pixels from central pixel to 
+    wsize_bot:     The window size; distance in pixels from central pixel to
                    bottom end of the neighborhood.
                 
-    wsize_right:   The window size; distance in pixels from central pixel to 
+    wsize_right:   The window size; distance in pixels from central pixel to
                    right end of the neighborhood.
                  
-    statistic:     The statistic type to be calculated. 
+    statistic:     The statistic type to be calculated.
                    mean, max, min, std or var
     
-    ignore_nodata: Denotes whether NoData values are ignored by the statistic 
+    ignore_nodata: Denotes whether NoData values are ignored by the statistic
                    calculation.
          
 
@@ -347,77 +390,63 @@ def get_newdata(data, wsize_top, wsize_left,
     
     if ignore_nodata:
     
-        for col in range(np.size(data, 1)): # rows
-                for row in range(np.size(data, 0)):  # columns
+        for col in range(np.size(data, 1)):
+            for row in range(np.size(data, 0)):
+                
+                ### border cases ###
+                
+                # all corners:
+                if col < wsize_left and row < wsize_top: # topleft
+                    window = data[:row+wsize_bot+1, :col+wsize_right+1]
+    
+                elif (col < wsize_left
+                      and row >= np.size(data, 0)-wsize_bot): # botleft
+                    window = data[row-wsize_top:, :col+wsize_right+1]
+    
+                elif (col >= np.size(data, 1)-wsize_right
+                      and row < wsize_top): # topright
+                    window = data[:row+wsize_bot+1, col-wsize_left:]
+    
+                elif (col >= np.size(data, 1)-wsize_right
+                      and row >= np.size(data, 0)-wsize_bot): # botright
+                    window = data[row-wsize_top:, col-wsize_left:]
+    
+    
+                # all borders:
+                elif col < wsize_left: # left border
+                    window = data[row-wsize_top:row+wsize_bot+1,
+                                  :col+(wsize_right)+1]
+    
+                elif row >= np.size(data, 0)-wsize_bot: # bot border
+                    window = data[row-wsize_top:,
+                                  col-wsize_left:col+wsize_right+1]
+    
+                elif col >= np.size(data, 1)-wsize_right: # right border
+                    window = data[row-wsize_top:row+wsize_bot+1,
+                                  col-wsize_left:]
+    
+                elif row < wsize_top: # top border
+                    window = data[:row+wsize_bot+1,
+                                  col-wsize_left:col+wsize_right+1]
     
     
     
-                    ### border cases ###
-    
-                    # all corners:
-                    if col < wsize_left and row < wsize_top: # topleft
-                        window = data[:row+wsize_bot+1, :col+wsize_right+1]
-                        #print('bot in topleft case \n', bot)
-    
-                    elif (col < wsize_left
-                          and row >= np.size(data, 0)-wsize_bot): # botleft
-                        window = data[row-wsize_top:, :col+wsize_right+1]
-                        #print('top in botleft case \n', top)
+                else: # normal case
+                    window = data[row-wsize_top:row+wsize_bot+1,
+                                  col-wsize_left:col+wsize_right+1]
     
     
-                    elif (col >= np.size(data, 1)-wsize_right
-                          and row < wsize_top): # topright
-                        window = data[:row+wsize_bot+1, col-wsize_left:]
-                        #print('bot in the topright case \n', bot)
-    
-                    elif (col >= np.size(data, 1)-wsize_right
-                          and row >= np.size(data, 0)-wsize_bot): # botright
-                        window = data[row-wsize_top:, col-wsize_left:]
-                        #print('top in the botright case \n', top)
-    
-    
-                    # all borders:
-                    elif col < wsize_left: # left border
-                        window = data[row-wsize_top:row+wsize_bot+1,
-                                      :col+(wsize_right)+1]
-                        #print('left border case: \n', middle)
-    
-                    elif row >= np.size(data, 0)-wsize_bot: # bot border
-                        window = data[row-wsize_top:,
-                                      col-wsize_left:col+wsize_right+1]
-                        #print('bot border case \n', middle)
-    
-                    elif col >= np.size(data, 1)-wsize_right: # right border
-                        window = data[row-wsize_top:row+wsize_bot+1,
-                                      col-wsize_left:]
-                        #print('right border case \n', middle)
-    
-                    elif row < wsize_top: # top border
-                         window = data[:row+wsize_bot+1,
-                                       col-wsize_left:col+wsize_right+1]
-                        #print('top border case \n', middle)
-    
-    
-    
-                    else: # normal case
-                        window = data[row-wsize_top:row+wsize_bot+1,
-                                      col-wsize_left:col+wsize_right+1]
-                        #print('normal case \n', middle)
-    
-    
-                    # using the statistic function
-                    newdata[row, col] = function[statistic](window)
-                    #print(newdata)    
+                newdata[row, col] = function[statistic](window)
+                       
                     
     else:
         
         for col in range(np.size(data, 1)): # rows
-            for row in range(np.size(data, 0)):        
-        
-                if (row < np.size(data, 0)-wsize_bot
-                      and row >= wsize_top
-                      and col < np.size(data, 1)-wsize_right
-                      and col >= wsize_left): # normal case
+            for row in range(np.size(data, 0)):
+                
+                if (wsize_top <= row < np.size(data, 0)-wsize_bot
+                    and wsize_left <= col < np.size(data, 1)-wsize_right
+                    ): # normal case
                     window = data[row-wsize_top:row+wsize_bot+1,
                                   col-wsize_left:col+wsize_right+1]
                     
