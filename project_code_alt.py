@@ -282,7 +282,9 @@ def bordercases(data, wsize_top, wsize_left, wsize_bot, wsize_right, NoData):
 function = {
     "min": np.min,
     "max": np.max,
-    "mean": np.mean}
+    "mean": np.mean
+    "variance": np.var,
+    "standard deviation": np.std}
     
 
 
