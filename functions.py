@@ -3,15 +3,18 @@
 Created on Tue Jul 14 21:38:26 2020
 
 @author: Brigitte Häuser, Guilherme Arruda, Manuel Händel
-"""
 
-import os
-os.chdir(r'C:\Users\Brigggi\Desktop\gis_plus')
+Function definitions for the focal statistics project. The main function 
+'focal_statistics()' calls the helper functions: 'get_values()', 
+'get_angle()', 'get_newdata()' and 'rectangfun()'. The dictionary 
+'function' stores the different statistics that can be applied to the
+cell values.
+"""
 
 import numpy as np
 import math
 
-from neighborhoods import Rectangle, Circle, Wedge
+from classes import Rectangle, Circle, Wedge
 
 # main function
 def focal_statistics(in_data,
@@ -109,7 +112,8 @@ def focal_statistics(in_data,
     return(out_data)
 
 
-# helper functions
+
+# helper functions for Circle and Wedge neighborhood
 def get_values(data, neighborhood, row_processing, col_processing):
     """
     Returns the values of the cells determined by the neighborhood.
@@ -201,7 +205,8 @@ def get_angle(row_processing, col_processing, row, col):
         return 360 + math.degrees(math.asin(y / dist))
 
 
-# Helper function for Rectangle neighborhood.
+
+# Helper functions for Rectangle neighborhood.
 def rectangfun(data, height, width, statistic, ignore_nodata):
     
     
@@ -298,7 +303,7 @@ def rectangfun(data, height, width, statistic, ignore_nodata):
     return newdata
 
 
-# Border cases for Rectangle neighborhood.
+
 def get_newdata(data, wsize_top, wsize_left,
                 wsize_bot, wsize_right, statistic, ignore_nodata): 
     
@@ -424,6 +429,8 @@ def get_newdata(data, wsize_top, wsize_left,
     
     return newdata
 
+
+
 # dictionary with summary statistics
 function = {
     "min": np.min,
@@ -431,29 +438,3 @@ function = {
     "mean": np.mean,
     "var": np.var,
     "std": np.std}
-
-
-
-######## code to test the functions
-file = np.arange(60).reshape(10, 6) 
-print(file)
-
-out = focal_statistics(file, Rectangle(4,3), 'max', False)
-print('rectang buffer border \n', out)
-out = focal_statistics(file, Rectangle(4,3), 'max', True)
-print('rcetang default border \n', out)
-  
-
-#out = focal_statistics(file, Circle(3), "max")
-#print('circle default border \n', out)
-
-import matplotlib.pyplot as plt
-
-plt.imshow(out)
-plt.show()
-"""
-print(out)
-#print(vals)
-print(win)
-#print(row, col)
-"""
