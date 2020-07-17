@@ -40,8 +40,8 @@ print('wedge default border \n', out)
 
 
 out = get_values(file, Wedge(3, 45, 180), 7, 5, show_window = 1)
-#print('Display window \n', out[0])
-#print('Display distance \n', out[1])
-#rint('Display angle \n', out[2])
+print('Display window \n', out[0])
+print('Display distance \n', out[1])
+print('Display angle \n', out[2])
 
 
