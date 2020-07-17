@@ -1,7 +1,7 @@
 ---
 title: "Focal Statistics"
-author: "Manuel Händel"
-date: "17 7 2020"
+author: "Brigitte Häuser, Guilherme Arruda, Manuel Händel"
+date: "`r Sys.Date()`"
 output: pdf_document
 ---
 
