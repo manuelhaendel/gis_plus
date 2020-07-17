@@ -21,6 +21,8 @@ Focal  Statistics  from  ArcGIS.
 
 - Programmed in Python.
 - Tried to stay close to the arc gis implementation
+- Describe how the different windows get determined
+- Describe what ignore_nodata does, especially concerning the edges of the array
 - Two approaches for different neighborhoods (didn't want to discard the work, plus both work)
 - Approach Rectangle (difficulties, packages, bla bla bla)
 - Approach Circle, Wedge (difficulties, packages, bla bla bla)
