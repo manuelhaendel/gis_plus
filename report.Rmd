@@ -7,22 +7,30 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-setwd(dir = "C:/Users/Manuel/Documents/Studium/MSc_Umweltwissenschaften/gis_plus")
+setwd(dir = "C:/Users/Brigggi/Desktop/gis_plus/")
 ```
 
 # Goal
 
 - Create an image-filtering tool that follows the same concept as the 
-Focal  Statistics  from  ArcGIS.
+Focal  Statistics  from  ArcGIS. -> Maybe an example for application for focal statistics?
 - Moving window of different shapes.
 - Different summary statistics.
+
+The goal of the project was to create an image-filtering tool that follows the same concept as the 
+Focal  Statistics  from  ArcGIS. --> Examples for application?  
+We wanted to implement different options for both available functions as well as neighborhood types. For the functions, we use minimum, maximum, mean, standard deviation and variance. The neighborhood can have different shapes. The simplest one is a square with odd diameter, where the height is the same as the width. For odd diameters, there is a central pixel in the middle of the square. For even diameters, the middle is between two pixels. Here, the central pixel is assigned to the left resp. the top one of the possible middle pixels.   
+The rectangular window has different heights and widths, but is similar to the square otherwise.  
+In the circle window, the neighborhood is assigned to the pixels which have a specific distance to the central pixel. The wedge window is similar to the circle, but the user can chose to use a start and end angle, so that only a part of the circle is used.
+
+With this options, the user has various possibilities to use the focal statistics for his own special requirements.
 
 # Method
 
 - Programmed in Python.
 - Tried to stay close to the arc gis implementation
 - Describe how the different windows get determined
-- Describe what ignore_nodata does, especially concerning the edges of the array
+- Describe what ignore_nodata does, especially concerning the edges of the array (pictures?)
 - Two approaches for different neighborhoods (didn't want to discard the work, plus both work)
 - Approach Rectangle (difficulties, packages, bla bla bla)
 - Approach Circle, Wedge (difficulties, packages, bla bla bla)
