@@ -359,16 +359,16 @@ def get_newdata(data, wsize_top, wsize_left,
     data :         numpy array
                    The array to perform the focal statistics calculations on.
         
-    wsize_top:     The window size; distance in pixels from central pixel to
+    wsize_top:     The window size top; distance in pixels from central pixel to
                    top end of the neighborhood.
     
-    wsize_left:    The window size; distance in pixels from central pixel to 
+    wsize_left:    The window size left; distance in pixels from central pixel to
                    left end of the neighborhood.
                 
-    wsize_bot:     The window size; distance in pixels from central pixel to
+    wsize_bot:     The window size bot; distance in pixels from central pixel to
                    bottom end of the neighborhood.
                 
-    wsize_right:   The window size; distance in pixels from central pixel to
+    wsize_right:   The window size right; distance in pixels from central pixel to
                    right end of the neighborhood.
                  
     statistic:     The statistic type to be calculated.
@@ -443,17 +443,20 @@ def get_newdata(data, wsize_top, wsize_left,
         
         for col in range(np.size(data, 1)): # rows
             for row in range(np.size(data, 0)):
-                
-                if (wsize_top <= row < np.size(data, 0)-wsize_bot
-                    and wsize_left <= col < np.size(data, 1)-wsize_right
-                    ): # normal case
-                    window = data[row-wsize_top:row+wsize_bot+1,
-                                  col-wsize_left:col+wsize_right+1]
-                    
-                    newdata[row, col] = function[statistic](window)
-                    
-                else: # buffer zone
-                    newdata[row, col] = None
+
+                    # without NAs in the neighborhood
+                    if (wsize_top <= row < np.size(data, 0)-wsize_bot and
+                            wsize_left <= col < np.size(data, 1)-wsize_right): # normal case
+                        window = data[row-wsize_top:row+wsize_bot+1,
+                                      col-wsize_left:col+wsize_right+1]
+
+                        if np.isnan(window).any(): # if NAs in the neighborhood -> set value to NA
+                            newdata[row, col] = None
+                        else:
+                            newdata[row, col] = function[statistic](window)
+
+                    else: # buffer zone
+                        newdata[row, col] = None
             
     
     return newdata
