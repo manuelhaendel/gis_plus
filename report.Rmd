@@ -1,0 +1,68 @@
+---
+title: "Focal Statistics"
+author: "Manuel Händel"
+date: "17 7 2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+setwd(dir = "C:/Users/Manuel/Documents/Studium/MSc_Umweltwissenschaften/gis_plus")
+```
+
+# Goal
+
+- Create an image-filtering tool that follows the same concept as the 
+Focal  Statistics  from  ArcGIS.
+- Moving window of different shapes.
+- Different summary statistics.
+
+# Method
+
+- Programmed in Python.
+- Tried to stay close to the arc gis implementation
+- Two approaches for different neighborhoods (didn't want to discard the work, plus both work)
+- Approach Rectangle (difficulties, packages, bla bla bla)
+- Approach Circle, Wedge (difficulties, packages, bla bla bla)
+
+# Result
+
+- Different test array.
+- Showing all neighborhoods and statistics
+- Should we include the debug arrays, that show the window, not the actual result?
+
+
+
+```{python}
+import numpy as np
+import os
+
+from functions import (focal_statistics, get_values,
+                       get_angle, get_newdata, rectangfun)
+from classes import Rectangle, Circle, Wedge
+
+# run the focal_statistics with some example code
+file = np.arange(150).reshape(15, 10)
+file2 = np.arange(150).reshape(15, 10).astype(float)
+file2[6, 6] = np.nan # with a NA value in the middle
+
+print(file2)
+out = focal_statistics(file, Rectangle(4,3), 'max')
+print('rectang default border \n', out)
+
+out = focal_statistics(file2, Rectangle(4,3), 'mean', ignore_nodata=False)
+print('rectang ignore_nodata=FALSE with one NA value \n', out)
+
+out = focal_statistics(file, Circle(3), "max")
+print('circle default border \n', out)
+
+out = focal_statistics(file, Wedge(3, 0, 90), "max")
+print('wedge default border \n', out)
+
+
+out = get_values(file, Wedge(3, 45, 180), 7, 5, show_window = 1)
+print('Display window \n', out[0])
+print('Display distance \n', out[1])
+print('Display angle \n', out[2])
+```
+
