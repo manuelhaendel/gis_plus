@@ -33,6 +33,18 @@ With this options, the user has various possibilities to use the focal statistic
 - Describe what ignore_nodata does, especially concerning the edges of the array (pictures?)
 - Two approaches for different neighborhoods (didn't want to discard the work, plus both work)
 - Approach Rectangle (difficulties, packages, bla bla bla)
+
+Zuerst noch ignore_nodata erklären
+
+Due to division of labour, we have two different approaches for dealing with the border problem. One, categorising in the normal case and border cases, is applied in the square and rectangle neighorbood. For the square and wedge, we use padding. For a more detailed explanation of the two approaches see below.  
+
+...
+
+For the square and the rectangle neighborhood, we use two functions: "rectangfun" and "get_newdata". The first determines the window sizes from the central pixel to all four sides, which calculations differ dependend on odd or even numbers as height and width.  
+Now, "get_newdata" uses informations about the window size in order to calculate the output data. For the argument ignore_nodata = True, it categorises the data into the normal case and border and corner cases, where the neighorhood shape would be bigger than the data frame. Here, it shrinks the neighborhood to the available pixels in the neighbourhood. In all cases, the statistical function is applied to the neighborhood window and the result is stored in a new data frame. If there is a NA value in the data frame, the calculation is made with the remaining.  
+Is ignore_nodata = False, all pixels whose neighborhoods extend beyond the borders, are set to NA values. Besides, all pixels with NA values in their neighborhood get also NA values.
+The code for the rectangle approach uses base Python and numpy.
+
 - Approach Circle, Wedge (difficulties, packages, bla bla bla)
 
 # Result
