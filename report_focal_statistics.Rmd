@@ -18,9 +18,11 @@ knitr::opts_chunk$set(echo = FALSE)
 <!-- - Different summary statistics. -->
 
 The goal of the project is to create an image-filtering tool that follows the same concept as the 
-Focal  Statistics  from  ArcGIS. This tool iterates through every cell of the input raster and calculates a statistic of the values that surround it. These surrounding values are determined by different so called neihborhoods. The neighborhoods we will implement are *Rectangle*, *Circle* and *Wedge* (see figure \ref{fig:neighb}), available statistics will be *minimum*, *maximum*, *mean*, *standard deviation* and *variance*.
+Focal  Statistics  from  ArcGIS. This tool iterates through every cell of the input raster and calculates a statistic of the values that surround it. These surrounding values are determined by different so called neihborhoods. The neighborhoods we will implement are *Square*, *Rectangle*, *Circle* and *Wedge* (see figure \ref{fig:neighb}), available statistics will be *minimum*, *maximum*, *mean*, *standard deviation* and *variance*.
 
-<!-- I only describe three neighborhoods, since square and rectangle are basically the same. Don't know if we need to distinguish between them. -->
+<!-- I only describe three neighborhoods, since square and rectangle are basically the same. Don't know if we need to distinguish between them.
+
+Ich habs jetzt gemacht, weil er das in der Aufgabenstellung ja auch so hatte. Hab dazu jetzt aber eigentlich auch keine starke Meinung, also wenns dich stört, machs weg. -->
 
 
 # Methods and challenges
@@ -39,23 +41,26 @@ The project is programmed in Python. We tried to stay close to the ArcGIS implem
 
 ## The Neighborhood types
 
-**Rectangle:** The simplest one is a square with odd diameter, where the height is the same as the width. For odd diameters, there is a central pixel in the middle of the square. For even diameters, the middle is between two pixels. Here, the central pixel is assigned to the left resp. the top one of the possible middle pixels. The rectangular window has different heights and widths, but is similar to the square otherwise.  
+**Square:** The square has the same height as width. For odd diameter, there is the central pixel in the middle of the square. For even diameters, the middle is between two pixels. Here, the center is assigned to the left resp. the top one of the possible central pixels.
+
+**Rectangle:** The rectangular window has different heights and widths, but is similar to the square otherwise.  
 
 **Circle:** The neighborhood window is defined by a circle around the processed cell. The radius is determined by user input. Any cell whose center falls inside the specified radius is included in the window.
 
 **Wedge:** Similar to the *Circle* neighborhood, the user defines a radius that determines the cells included in the window. But instead of a full 360° circle, the user chooses a start and end angle determining the part of the circle that makes up the neighborhood window. The wedge spans counterclockwise from the start to the end angle, which must be given in degrees from 0° to 360°, the positive x-axis being 0°.
 
 
-![This is how the different neighborhood windows *Rectangle*, *Circle* and *Wedge* have been implemented. \label{fig:neighb}](figures/neighborhoods.png)
+
 
 
 ## The edge problem
 
 Due to division of labour, we have two different approaches for dealing with the edge problem. The first one is applied in the *Square* and *Rectangle* neighborbood and categorises cells in normal and edge cases. For the *Cirlce* and *Wedge*, we use padding. 
 
-For the square and the rectangle neighborhood, we use two functions: *rectangfun* and *get_newdata*. The first determines the window sizes from the central pixel to all four sides, which calculations differ dependent on odd or even numbers as height and width. Is the width even, the central pixel is assigned to the left pixel in the middle. For an even height, the central pixel is the top pixel in the middle.  
-Now, "get_newdata" uses the informations about the window size in order to calculate the output data. For the argument ignore_nodata equals true, it categorises the data into the normal case and edge and corner cases, where the neighorhood shape would be bigger than the data frame. Here, it shrinks the neighborhood to the available pixels in the neighbourhood. A code example using the upper left corner:
+For the square and the rectangle neighborhood, we use two functions: *rectangfun* and *get_newdata*. The first determines the window sizes from the central pixel to all four sides, which calculations differ dependent on odd or even numbers for height and width. Is the width even, the central pixel is assigned to the left pixel in the middle. For an even height, the central pixel is the top pixel in the middle.   <!-- Falls dir hier ne bessere Formulierung einfällt, her damit. -->
+Now, "get_newdata" uses the informations about the window size in order to calculate the output data. For the argument *ignore_nodata* equals true, it categorises the data into normal case and edge and corner cases, where the neighorhood shape would be bigger than the data frame. Here, it shrinks the neighborhood to the available pixels in the neighbourhood. A code example using the upper left corner:
 
+<!-- Soll ich das wegmachen? Ist das unnötig, evtl sogar verwirrend, oder ok? -->
 
 ```{r echo=TRUE, eval=FALSE}
 for col in range(np.size(data, 1)):
@@ -66,11 +71,11 @@ for col in range(np.size(data, 1)):
                     window = data[:row+wsize_bot+1, :col+wsize_right+1]
 ```
 
-Here, the code iterated through all pixels in the matrix, searching for those, whose neighborhood is reaching out of the edges of the matrix. In "col < wsize_left", it is checked if the column of the pixel is smaller than the left window size of the neighorhood. If this is the case, as well as the row number of the pixel is smaller than the top window size, the code calculates the window for the upper left case.  
-The data got sliced. From the very top of the matrix until the bottom edge of the neighborhood the rows get addressed. For the columns, the slice goes from the very left of the matrix until the right edge of the neighborhood.  
+Here, the code iterates through all pixels in the matrix, searching for those, whose neighborhood is reaching out of the edges of the matrix. In *col < wsize_left*, it is checked if the column of the pixel is smaller than the left window size of the neighorhood. If this is the case, as well as the row number of the pixel is smaller than the top window size, the code calculates the window for the upper left case.  
+The data gets sliced. From the very top of the matrix until the bottom edge of the neighborhood the rows get addressed. For the columns, the slice goes from the very left of the matrix until the right edge of the neighborhood.  
 
 In all cases, the statistical function is applied to the neighborhood window and the result is stored in a new data frame. If there is an NA value in the data frame, the calculation is made with the remaining.  
-Is ignore_nodata equals false, all pixels whose neighborhoods extend beyond the edges, are set to NA values. Besides, all pixels with NA values in their neighborhood get also NA values.
+Is *ignore_nodata* equals false, all pixels whose neighborhoods extend beyond the edges, are set to NA values. Besides, all pixels with NA values in their neighborhood get also NA values.
 The code for the rectangle approach uses base Python and numpy.
 
 In the case of the *Circle* and *Wedge* neighborhood, before iterating through the raster cells the raster gets padded with a number of rows and columns, which depend on the radius the user determines and ensures that the window around the cell close to the edge of the input raster never extends past the boundary of the padded raster. The cells of the padding are filled with *nodata* values and hence the *ignore_nodata* argument defines how the edge cells will be filled. When *ignoew_nodata* is set to *true* (the default), the statistic will be applied to all the values of the windwo that are not *na*, when it is set to *false* the cell will be replaced by *nodata*, effectively reducing the size of the output raster.
@@ -79,7 +84,9 @@ In the case of the *Circle* and *Wedge* neighborhood, before iterating through t
 
 <!-- - Different test array. -->
 <!-- - Showing all neighborhoods and statistics -->
-<!-- - Should we include the debug arrays, that show the window, not the actual result? -->
+<!-- - Should we include the debug arrays, that show the window, not the actual result? 
+
+Was meinst du damit? -->
 
 
 
