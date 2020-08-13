@@ -35,7 +35,6 @@ Ich habs jetzt gemacht, weil er das in der Aufgabenstellung ja auch so hatte. Ha
 <!-- - Approach Rectangle (difficulties, packages, bla bla bla) -->
 <!-- - Approach Circle, Wedge (difficulties, packages, bla bla bla) -->
 
-<!-- Replaced 'border' with 'edge' in the whole text, you can decide if you want to do the same in the code or leave it as is... -->
 
 The project is programmed in Python. We tried to stay close to the ArcGIS implementation of focal statistics. The exact implementation can be found here: [ArcGis' Focal Statistics](https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-focal-statistics-works.htm). The main challenges were the implementation of the different neighborhoods and the question how to deal with the problem that arises when the processed cell is close to the edge of the raster and the neighborhood window would reach outside of the boundary.
 
@@ -51,13 +50,11 @@ The project is programmed in Python. We tried to stay close to the ArcGIS implem
 
 
 
-
-
 ## The edge problem
 
 Due to division of labour, we have two different approaches for dealing with the edge problem. The first one is applied in the *Square* and *Rectangle* neighborbood and categorises cells in normal and edge cases. For the *Cirlce* and *Wedge*, we use padding. 
 
-For the square and the rectangle neighborhood, we use two functions: *rectangfun* and *get_newdata*. The first determines the number of pixels from the central pixel to all four sides. This dependents on whether the height and width of the window is even or odd. Is the width even, the central pixel is assigned to the left pixel of the two possible middle pixels. For an even height, the central pixel is the top pixel.
+For the square and the rectangle neighborhood, we use two functions: *rectangfun* and *get_newdata*. The first determines the number of pixels from the central pixel to all four sides. This depends on whether the height and width of the window is even or odd. Is the width even, the central pixel is assigned to the left pixel of the two possible middle pixels. For an even height, the central pixel is the top pixel.
 
 Now, "get_newdata" uses the information about the window size in order to calculate the output data. For the argument *ignore_nodata* equals true, it categorises the data into normal case and edge and corner cases, where the neighorhood shape would be bigger than the data frame. Here, it shrinks the neighborhood to the available pixels in the neighbourhood. A code example using the upper left corner:
 
@@ -78,9 +75,7 @@ In all cases, the statistical function is applied to the neighborhood window and
 Is *ignore_nodata* equals false, all pixels whose neighborhoods extend beyond the edges, are set to NA values. Besides, all pixels with NA values in their neighborhood get also NA values.
 The code for the rectangle approach uses base Python and numpy.
 
-<!-- Der folgende Satz ist ein bisschen lang und unübersichtlich, vielleicht kann man den nochmal teilen? -->
-In the case of the *Circle* and *Wedge* neighborhood, before iterating through the raster cells the raster gets padded with a number of rows and columns, which depend on the radius the user determines and ensures that the window around the cell close to the edge of the input raster never extends past the boundary of the padded raster. The cells of the padding are filled with *nodata* values and hence the *ignore_nodata* argument defines how the edge cells will be filled. When *ignore_nodata* is set to *true* (the default), the statistic will be applied to all the values of the window that are not *na*, when it is set to *false* the cell will be replaced by *nodata*, effectively reducing the size of the output raster.
-<!-- Ich glaub ich würd mich auf na oder nodata festlegen und nicht beides in einem Satz verwenden für das Gleiche. Grad weils schief geschrieben ist wirkt das so, als wärs nen festgelegter Begriff und da verwirrt es bisschen. -->
+In the case of the *Circle* and *Wedge* neighborhood, before iterating through the raster cells, the raster gets padded with a number of rows and columns. The number depends on the radius the user determines and ensures that the window around the cell close to the edge of the input raster never extends past the boundary of the padded raster. The cells of the padding are filled with *NA* values and hence the *ignore_nodata* argument defines how the edge cells will be filled. When *ignore_nodata* is set to *true* (the default), the statistic will be applied to all the values of the window that are not *NA*, when it is set to *false* the cell will be replaced by *NA*, effectively reducing the size of the output raster.
 
 # Result
 
