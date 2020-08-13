@@ -393,7 +393,7 @@ def get_newdata(data, wsize_top, wsize_left,
         for col in range(np.size(data, 1)):
             for row in range(np.size(data, 0)):
                 
-                ### border cases ###
+                ### edge cases ###
                 
                 # all corners:
                 if col < wsize_left and row < wsize_top: # topleft
@@ -412,20 +412,20 @@ def get_newdata(data, wsize_top, wsize_left,
                     window = data[row-wsize_top:, col-wsize_left:]
     
     
-                # all borders:
-                elif col < wsize_left: # left border
+                # all edges:
+                elif col < wsize_left: # left edge
                     window = data[row-wsize_top:row+wsize_bot+1,
                                   :col+(wsize_right)+1]
     
-                elif row >= np.size(data, 0)-wsize_bot: # bot border
+                elif row >= np.size(data, 0)-wsize_bot: # bot edge
                     window = data[row-wsize_top:,
                                   col-wsize_left:col+wsize_right+1]
     
-                elif col >= np.size(data, 1)-wsize_right: # right border
+                elif col >= np.size(data, 1)-wsize_right: # right edge
                     window = data[row-wsize_top:row+wsize_bot+1,
                                   col-wsize_left:]
     
-                elif row < wsize_top: # top border
+                elif row < wsize_top: # top edge
                     window = data[:row+wsize_bot+1,
                                   col-wsize_left:col+wsize_right+1]
     
