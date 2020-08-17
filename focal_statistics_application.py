@@ -12,6 +12,9 @@ corresponding scripts or display their documentation in the console.
 
 import numpy as np
 import os
+import png
+import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
 path = input(("Enter the path to the working directory\n"
               "(location of focal_statistics modules):\n"), )
 os.chdir(path)
@@ -45,3 +48,5 @@ print('Display distance \n', out[1])
 print('Display angle \n', out[2])
 
 
+out = get_values(file, Circle(3), 7, 5, show_window = 1)
+print('Display window \n', out)

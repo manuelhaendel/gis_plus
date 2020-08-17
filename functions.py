@@ -144,8 +144,9 @@ def get_values(data, neighborhood, row_processing, col_processing,
         
         # debugging feature
         if show_window:
-            values = np.copy(data)
-            values[window] = show_window
+            values = np.zeros(data.shape)
+            values[window] = 0.5
+            values[row_processing, col_processing] = 1
         
         else:
             values = data[window]
