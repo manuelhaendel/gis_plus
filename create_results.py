@@ -159,7 +159,7 @@ make_image(out, "figures/wedge_3_0_135_out_std.png")
 window = get_values(file, Wedge(3, 0, 135), 7, 5, show_window = 1)[0]
 make_image(file, 'figures/wedge_3_0_135_out_window.png', show_window = True,
            window_type = "wedge", window = window, cmap = cmap, start = 0, end = 135)
-make_image(file, 'figures/wedge_3_0_135_out_window.png', show_window = True, add_values = False,
+make_image(file, 'figures/wedge_3_0_135_out_window_no_values.png', show_window = True, add_values = False,
            window_type = "wedge", window = window, cmap = cmap, start = 0, end = 135)
 
 
@@ -181,7 +181,7 @@ window[6:10, 3:9] = 0.5
 window[7, 5] = 1
 make_image(file, 'figures/rectangle_5_3_out_window.png', show_window = True,
            window_type = "rectangle", window = window, cmap = cmap, corner = (3,8,6,9))
-make_image(file, 'figures/rectangle_5_3_out_window.png', show_window = True, add_values = False,
+make_image(file, 'figures/rectangle_5_3_out_window_no_values.png', show_window = True, add_values = False,
            window_type = "rectangle", window = window, cmap = cmap, corner = (3,8,6,9))
 
 
