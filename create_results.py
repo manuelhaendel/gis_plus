@@ -15,7 +15,7 @@ from classes import Rectangle, Circle, Wedge
 
 
 
-def make_image(data, outputname, size=(4, 6), dpi=80, cmap = 'RdYlBu',
+def make_image(data, outputname, size=(4, 6), dpi=80, cmap = 'RdYlBu', add_values = True,
                show_window = False, window = "None", window_type = "circle",
                center = (7, 5), radius = 3, start = 0, end = 90, corner = (3,8,6,9)):
     fig = plt.figure()
@@ -49,11 +49,13 @@ def make_image(data, outputname, size=(4, 6), dpi=80, cmap = 'RdYlBu',
     else:
         ax.imshow(data, aspect='equal', cmap = cmap)
     
-    # add cell values as text in each cell
-    for col in range(np.size(data, 1)):
+    if add_values:
+        # add cell values as text in each cell
+        for col in range(np.size(data, 1)):
             for row in range(np.size(data, 0)):
                 str = int(data[row, col])
                 ax.text(col-0.25, row+0.2, str)
+    
     
     
     ax.grid(which = "major", color = "k", linestyle='-', linewidth=2)
@@ -138,6 +140,8 @@ make_image(out, 'figures/circle_3_out_std.png')
 window = get_values(file, Circle(3), 7, 5, show_window = 1)
 make_image(file, 'figures/circle_3_out_window.png', show_window = True,
            window_type = "circle", window = window, cmap = cmap)
+make_image(file, 'figures/circle_3_out_window_no_values.png', add_values = False,
+           show_window = True, window_type = "circle", window = window, cmap = cmap)
 
 
 
@@ -155,6 +159,8 @@ make_image(out, "figures/wedge_3_0_135_out_std.png")
 window = get_values(file, Wedge(3, 0, 135), 7, 5, show_window = 1)[0]
 make_image(file, 'figures/wedge_3_0_135_out_window.png', show_window = True,
            window_type = "wedge", window = window, cmap = cmap, start = 0, end = 135)
+make_image(file, 'figures/wedge_3_0_135_out_window.png', show_window = True, add_values = False,
+           window_type = "wedge", window = window, cmap = cmap, start = 0, end = 135)
 
 
 
@@ -168,12 +174,14 @@ make_image(out, "figures/rectangle_5_3_out_mean.png")
 
 out = focal_statistics(file, Rectangle(6, 4), "std")
 make_image(out, "figures/rectangle_5_3_out_std.png")
-
+    
 
 window = np.zeros(file.shape)
 window[6:10, 3:9] = 0.5
 window[7, 5] = 1
 make_image(file, 'figures/rectangle_5_3_out_window.png', show_window = True,
+           window_type = "rectangle", window = window, cmap = cmap, corner = (3,8,6,9))
+make_image(file, 'figures/rectangle_5_3_out_window.png', show_window = True, add_values = False,
            window_type = "rectangle", window = window, cmap = cmap, corner = (3,8,6,9))
 
 
