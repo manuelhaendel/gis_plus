@@ -12,31 +12,13 @@ knitr::opts_chunk$set(echo = FALSE)
 
 # Goal
 
-<!-- - Create an image-filtering tool that follows the same concept as the  -->
-<!-- Focal  Statistics  from  ArcGIS. -> Maybe an example for application for focal statistics? -->
-<!-- - Moving window of different shapes. -->
-<!-- - Different summary statistics. -->
-
 The goal of the project is to create an image-filtering tool that follows the same concept as the 
-Focal  Statistics  from  ArcGIS. This tool iterates through every cell of the input raster and calculates a statistic of the values that surround it. These surrounding values are determined by different so called neihborhoods. The neighborhoods we will implement are *Square*, *Rectangle*, *Circle* and *Wedge* (see figure \ref{fig:neighb}), available statistics will be *minimum*, *maximum*, *mean*, *standard deviation* and *variance*.
-
-<!-- I only describe three neighborhoods, since square and rectangle are basically the same. Don't know if we need to distinguish between them.
-
-Ich habs jetzt gemacht, weil er das in der Aufgabenstellung ja auch so hatte. Hab dazu jetzt aber eigentlich auch keine starke Meinung, also wenns dich stört, machs weg. -->
+Focal  Statistics  from  ArcGIS. This tool iterates through every cell of the input raster and calculates a statistic of the values that surround it. These surrounding values are determined by different so called neighborhoods. The neighborhoods we will implement are *Square*, *Rectangle*, *Circle* and *Wedge* (see figure \ref{fig:windows}), available statistics will be *minimum*, *maximum*, *mean*, *standard deviation* and *variance*.
 
 
 # Methods and challenges
 
-<!-- - Programmed in Python. -->
-<!-- - Tried to stay close to the arc gis implementation -->
-<!-- - Describe how the different windows get determined -->
-<!-- - Describe what ignore_nodata does, especially concerning the edges of the array (pictures?) -->
-<!-- - Two approaches for different neighborhoods (didn't want to discard the work, plus both work) -->
-<!-- - Approach Rectangle (difficulties, packages, bla bla bla) -->
-<!-- - Approach Circle, Wedge (difficulties, packages, bla bla bla) -->
-
-
-The project is programmed in Python. We tried to stay close to the ArcGIS implementation of focal statistics. The exact implementation can be found here: [ArcGis' Focal Statistics](https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-focal-statistics-works.htm). The main challenges were the implementation of the different neighborhoods and the question how to deal with the problem that arises when the processed cell is close to the edge of the raster and the neighborhood window would reach outside of the boundary.
+The project is programmed in base Python with the addition of the packages *numpy* and *matplotlib*. We tried to stay close to the ArcGIS implementation of focal statistics. The exact implementation can be found here: [ArcGis' Focal Statistics](https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-focal-statistics-works.htm). The main challenges were the implementation of the different neighborhoods and the question how to deal with the problem that arises when the processed cell is close to the edge of the raster and the neighborhood window would reach outside of the boundary.
 
 ## The Neighborhood types
 
@@ -49,7 +31,7 @@ The project is programmed in Python. We tried to stay close to the ArcGIS implem
 
 
 
-**Wedge:** Similar to the *Circle* neighborhood, the user defines a radius that determines the cells included in the window. But instead of a full 360° circle, the user chooses a start and end angle determining the part of the circle that makes up the neighborhood window. The wedge spans counterclockwise from the start to the end angle, which must be given in degrees from 0° to 360°, the positive x-axis being 0° (see \ref{fig:windows}c).
+**Wedge:** Similar to the *Circle* neighborhood, the user defines a radius that determines the cells included in the window. But instead of a full 360° circle, the user chooses a start and end angle determining the segment of the circle that makes up the neighborhood window. The wedge spans counterclockwise from the start to the end angle, which must be given in degrees from 0° to 360°, the positive x-axis being 0° (see \ref{fig:windows}c).
 
 
 ![Examples of all three types of Neighborhood windows. The processing cell is in row 8 and column 6. (a): Rectangle Neighborhood, 6 pixels wide and 4 pixels high. (b): Circle Neighborhood, radius of 3 pixels. (c): Wedge Neighborhood, radius of 3 pixels, start angle 0°, end angle 135°. \label{fig:windows}](figures/windows.png)
@@ -57,11 +39,11 @@ The project is programmed in Python. We tried to stay close to the ArcGIS implem
 
 ## The edge problem
 
-Due to division of labour, we have two different approaches for dealing with the edge problem. The first one is applied in the *Square* and *Rectangle* neighborbood and categorises cells in normal and edge cases. For the *Cirlce* and *Wedge*, we use padding. 
+Due to division of labor, we have two different approaches for dealing with the edge problem. The first one is applied in the *Square* and *Rectangle* neighborhood and categorizes cells in normal and edge cases. For the *Circle* and *Wedge*, we use padding. 
 
-For the square and the rectangle neighborhood, we use two functions: *rectangfun* and *get_newdata*. The first determines the number of pixels from the central pixel to all four sides. This depends on whether the height and width of the window is even or odd. Is the width even, the central pixel is assigned to the left pixel of the two possible middle pixels. For an even height, the central pixel is the top pixel.
+For the *Square* and the *Rectangle* neighborhood, we use two functions: *rectangfun* and *get_newdata*. The first determines the number of pixels from the central pixel to all four sides. This depends on whether the height and width of the window is even or odd. Is the width even, the central pixel is assigned to the left pixel of the two possible middle pixels. For an even height, the central pixel is the top pixel.
 
-Now, "get_newdata" uses the information about the window size in order to calculate the output data. For the argument *ignore_nodata* equals true, it categorises the data into normal case and edge and corner cases, where the neighorhood shape would be bigger than the data frame. Here, it shrinks the neighborhood to the available pixels in the neighbourhood. A code example using the upper left corner:
+Now, *get_newdata* uses the information about the window size in order to calculate the output data. For the argument *ignore_nodata* equals true, it categorizes the data into normal case and edge and corner cases, where the neighborhood shape would be bigger than the data frame. Here, it shrinks the neighborhood to the available pixels in the neighborhood. A code example using the upper left corner:
 
 
 ```{r echo=TRUE, eval=FALSE}
@@ -73,7 +55,7 @@ for col in range(np.size(data, 1)):
                     window = data[:row+wsize_bot+1, :col+wsize_right+1]
 ```
 
-Here, the code iterates through all pixels in the matrix, searching for those, whose neighborhood is reaching out of the edges of the matrix. In *col < wsize_left*, it is checked if the column of the pixel is smaller than the left window size of the neighorhood. If this is the case, as well as the row number of the pixel is smaller than the top window size, the code calculates the window for the upper left case.  
+Here, the code iterates through all pixels in the matrix, searching for those, whose neighborhood is reaching out of the edges of the matrix. In *col < wsize_left*, it is checked if the column of the pixel is smaller than the left window size of the neighborhood. If this is the case, as well as the row number of the pixel is smaller than the top window size, the code calculates the window for the upper left case.  
 The data gets sliced. From the very top of the matrix until the bottom edge of the neighborhood the rows get addressed. For the columns, the slice goes from the very left of the matrix until the right edge of the neighborhood.  
 
 In all cases, the statistical function is applied to the neighborhood window and the result is stored in a new data frame. If there is an NA value in the data frame, the calculation is made with the remaining.  
