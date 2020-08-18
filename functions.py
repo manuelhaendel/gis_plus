@@ -71,7 +71,7 @@ def focal_statistics(in_data,
     if not isinstance(neighborhood, (Rectangle, Circle, Wedge)):
         raise ValueError('Neighborhood class not implemented.')
     
-    if statistic not in ('min', 'max', 'mean', 'dev', 'var'):
+    if statistic not in ('min', 'max', 'mean', 'std', 'var'):
         raise ValueError('Statistic not implemented.')
     
     # add padding to the input array

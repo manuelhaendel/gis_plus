@@ -42,12 +42,17 @@ The project is programmed in Python. We tried to stay close to the ArcGIS implem
 
 **Square:** The square has the same height as width. When they are odd, a central pixel in the middle of the square can be determined. When they are even, the middle is between two pixels. Here, the center is assigned to the left respectively the top one of the possible central pixels.
 
-**Rectangle:** The rectangular window has different heights and widths, but is similar to the square otherwise.  
+**Rectangle:** The rectangular window has different heights and widths, but is similar to the square otherwise. See figure \ref{fig:windows}a for an example with even height and width.
 
-**Circle:** The neighborhood window is defined by a circle around the processed cell. The radius is determined by user input. Any cell whose center falls inside the specified radius is included in the window.
 
-**Wedge:** Similar to the *Circle* neighborhood, the user defines a radius that determines the cells included in the window. But instead of a full 360° circle, the user chooses a start and end angle determining the part of the circle that makes up the neighborhood window. The wedge spans counterclockwise from the start to the end angle, which must be given in degrees from 0° to 360°, the positive x-axis being 0°.
+**Circle:** The neighborhood window is defined by a circle around the processed cell. The radius is determined by user input. Any cell whose center falls inside the specified radius is included in the window (see \ref{fig:windows}b).
 
+
+
+**Wedge:** Similar to the *Circle* neighborhood, the user defines a radius that determines the cells included in the window. But instead of a full 360° circle, the user chooses a start and end angle determining the part of the circle that makes up the neighborhood window. The wedge spans counterclockwise from the start to the end angle, which must be given in degrees from 0° to 360°, the positive x-axis being 0° (see \ref{fig:windows}c).
+
+
+![Examples of all three types of Neighborhood windows. The processing cell is in row 8 and column 6. (a): Rectangle Neighborhood, 6 pixels wide and 4 pixels high. (b): Circle Neighborhood, radius of 3 pixels. (c): Wedge Neighborhood, radius of 3 pixels, start angle 0°, end angle 135°. \label{fig:windows}](figures/windows.png)
 
 
 ## The edge problem
@@ -79,44 +84,16 @@ In the case of the *Circle* and *Wedge* neighborhood, before iterating through t
 
 # Result
 
-<!-- - Different test array. -->
-<!-- - Showing all neighborhoods and statistics -->
-<!-- - Should we include the debug arrays, that show the window, not the actual result? 
+The following figures show the resulting output rasters for three different types of neighborhoods (figure \ref{fig:rec} = rectangle, figure \ref{fig:circle} = circle and figure \ref{fig:wedge} = wedge) and statistics ((a) = *mean*, (b) = *max* and (c) = *standard deviation*). The input raster has always been the same and can be seen in figure \ref{fig:input}.
 
-Was meinst du damit? -->
+![The input raster. \label{fig:input}](figures/focal_stat_in.png){width=27%}
 
-
-
-```{python}
-import numpy as np
-import os
-
-from functions import (focal_statistics, get_values,
-                       get_angle, get_newdata, rectangfun)
-from classes import Rectangle, Circle, Wedge
-
-# run the focal_statistics with some example code
-file = np.arange(150).reshape(15, 10)
-file2 = np.arange(150).reshape(15, 10).astype(float)
-file2[6, 6] = np.nan # with a NA value in the middle
-
-print(file2)
-out = focal_statistics(file, Rectangle(4,3), 'max')
-print('rectang default border \n', out)
-
-out = focal_statistics(file2, Rectangle(4,3), 'mean', ignore_nodata=False)
-print('rectang ignore_nodata=FALSE with one NA value \n', out)
-
-out = focal_statistics(file, Circle(3), "max")
-print('circle default border \n', out)
-
-out = focal_statistics(file, Wedge(3, 0, 90), "max")
-print('wedge default border \n', out)
+![Output rasters for Rectangle Neighborhood with a width of 6 and height of 4 pixels. Used statistics: (a) = *mean*, (b) = *max*, (c) = *standard deviation*. \label{fig:rec}](figures/rectangle.png)
 
 
-out = get_values(file, Wedge(3, 45, 180), 7, 5, show_window = 1)
-print('Display window \n', out[0])
-print('Display distance \n', out[1])
-print('Display angle \n', out[2])
-```
+![Output rasters for Circle Neighborhood with a radius of 3 pixels. Used statistics: (a) = *mean*, (b) = *max*, (c) = *standard deviation*. \label{fig:circle}](figures/circle.png)
+
+![Output rasters for Wedge Neighborhood with a radius of 3 pixels, a start angle of 0° and an end angle of 135°. Used statistics: (a) = *mean*, (b) = *max*, (c) = *standard deviation*. \label{fig:wedge}](figures/wedge.png)
+
+
 

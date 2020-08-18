@@ -17,7 +17,7 @@ from classes import Rectangle, Circle, Wedge
 
 def make_image(data, outputname, size=(4, 6), dpi=80, cmap = 'RdYlBu',
                show_window = False, window = "None", window_type = "circle",
-               center = (7, 5), radius = 3, start = 0, end = 90):
+               center = (7, 5), radius = 3, start = 0, end = 90, corner = (3,8,6,9)):
     fig = plt.figure()
     fig.set_size_inches(size)
     ax = plt.Axes(fig, [0., 0., 1., 1.])
@@ -39,6 +39,11 @@ def make_image(data, outputname, size=(4, 6), dpi=80, cmap = 'RdYlBu',
             x, y = draw_circle(center, radius)
         elif window_type == "wedge":
             x, y = draw_wedge(center, radius, start, end)
+        elif window_type == "rectangle":
+            x = [corner[0]-.5, corner[1]+.5, corner[1]+.5,
+                 corner[0]-.5, corner[0]-.5]
+            y = [corner[2]-.5, corner[2]-.5, corner[3]+.5,
+                 corner[3]+.5, corner[2]-.5]
             
         ax.plot(x, y, '-', linewidth=2.5, color='k')
     else:
@@ -119,45 +124,57 @@ make_image(file, 'figures/focal_stat_in.png')
 cmap = mcolors.LinearSegmentedColormap.from_list("", [(1,1,1), (0,0.5,0)])
 
 
-# make ouput and window array for circle neighborhood
+# save outputs for circle neighborhood
 out = focal_statistics(file, Circle(3), "max")
-window = get_values(file, Circle(3), 7, 5, show_window = 1)
-
-# save plots for circle neighborhood
 make_image(out, 'figures/circle_3_out_max.png')
+
+out = focal_statistics(file, Circle(3), "mean")
+make_image(out, 'figures/circle_3_out_mean.png')
+
+out = focal_statistics(file, Circle(3), "std")
+make_image(out, 'figures/circle_3_out_std.png')
+
+
+window = get_values(file, Circle(3), 7, 5, show_window = 1)
 make_image(file, 'figures/circle_3_out_window.png', show_window = True,
            window_type = "circle", window = window, cmap = cmap)
 
-# make ouput and window array for wedge neighborhood
-out = focal_statistics(file, Wedge(3, 0, 135), "max")
-window = get_values(file, Wedge(3, 0, 135), 7, 5, show_window = 1)[0]
 
-# save plots for wedge neighborhood
+
+# save outputs for wedge neighborhood
+out = focal_statistics(file, Wedge(3, 0, 135), "max")
 make_image(out, "figures/wedge_3_0_135_out_max.png")
+
+out = focal_statistics(file, Wedge(3, 0, 135), "mean")
+make_image(out, "figures/wedge_3_0_135_out_mean.png")
+
+out = focal_statistics(file, Wedge(3, 0, 135), "std")
+make_image(out, "figures/wedge_3_0_135_out_std.png")
+
+
+window = get_values(file, Wedge(3, 0, 135), 7, 5, show_window = 1)[0]
 make_image(file, 'figures/wedge_3_0_135_out_window.png', show_window = True,
            window_type = "wedge", window = window, cmap = cmap, start = 0, end = 135)
 
 
-# make ouput and window array for circle neighborhood
-out = focal_statistics(file, Circle(3), "mean")
-
-# save plots for circle neighborhood
-make_image(out, 'figures/circle_3_out_mean.png')
-
-# make ouput and window array for wedge neighborhood
-out = focal_statistics(file, Wedge(3, 0, 135), "mean")
-
-# save plots for wedge neighborhood
-make_image(out, "figures/wedge_3_0_135_out_mean.png")
 
 
+# save outputs for rectangle neighborhood
+out = focal_statistics(file, Rectangle(6, 4), "max")
+make_image(out, "figures/rectangle_5_3_out_max.png")
+
+out = focal_statistics(file, Rectangle(6, 4), "mean")
+make_image(out, "figures/rectangle_5_3_out_mean.png")
+
+out = focal_statistics(file, Rectangle(6, 4), "std")
+make_image(out, "figures/rectangle_5_3_out_std.png")
 
 
-
-
-
-
-
+window = np.zeros(file.shape)
+window[6:10, 3:9] = 0.5
+window[7, 5] = 1
+make_image(file, 'figures/rectangle_5_3_out_window.png', show_window = True,
+           window_type = "rectangle", window = window, cmap = cmap, corner = (3,8,6,9))
 
 
 
