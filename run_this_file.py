@@ -8,8 +8,8 @@ This script demonstrates the usage of the focal_statistics functions.
 The input dialog can be exchanged with a hard coded directory to the
 necessary modules. To inspect the functions and classes open the
 corresponding scripts or display their documentation in the console 
-(for example with focal_statistics?). The script 'create_results.py' was used
-to create and save the output plots.
+(for example with focal_statistics?). The script 'create_results.py'
+was used to create and save the output plots.
 """
 
 import numpy as np
@@ -29,23 +29,17 @@ file2[6, 6] = np.nan # with a NA value in the middle
 
 print(file2)
 out = focal_statistics(file, Rectangle(4,3), 'max')
-print('rectang default edge \n', out)
+print('Rectangle neighborhood \n', out)
 
 out = focal_statistics(file2, Rectangle(4,3), 'mean', ignore_nodata=False)
-print('rectang ignore_nodata=FALSE with one NA value \n', out)
+print('Rectangle neighborhood ignore_nodata=FALSE with one NA value \n', out)
 
 out = focal_statistics(file, Circle(3), "max")
-print('circle default edge \n', out)
+print('Circle neighborhood \n', out)
 
 out = focal_statistics(file, Wedge(3, 0, 90), "max")
-print('wedge default edge \n', out)
+print('Wedge neighborhood \n', out)
 
 
-out = get_values(file, Wedge(3, 45, 180), 7, 5, show_window = 1)
-print('Display window \n', out[0])
-print('Display distance \n', out[1])
-print('Display angle \n', out[2])
 
 
-out = get_values(file, Circle(3), 7, 5, show_window = 1)
-print('Display window \n', out)
