@@ -123,7 +123,7 @@ file = np.random.randint(0,99, 150).reshape(15, 10)
 make_image(file, 'figures/focal_stat_in.png')
 
 # colormap for figures that show window
-cmap = mcolors.LinearSegmentedColormap.from_list("", [(1,1,1), (0,0.5,0)])
+cmap = mcolors.LinearSegmentedColormap.from_list("", [(1,1,1), (0,0,0.5)])
 
 
 # save outputs for circle neighborhood
