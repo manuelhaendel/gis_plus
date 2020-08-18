@@ -13,6 +13,7 @@ cell values.
 
 import math
 import numpy as np
+import ipdb
 
 from classes import Rectangle, Circle, Wedge
 
@@ -103,9 +104,12 @@ def focal_statistics(in_data,
                     out_data[row, col] = function[statistic](values)
                 
                 elif np.isnan(values).any():
+                    ipdb.set_trace()
                     out_data[row, col] = None
+                    
                 
                 else:
+                    ipdb.set_trace()
                     out_data[row, col] = function[statistic](values)
         
         out_data = out_data[p:-p, p:-p]

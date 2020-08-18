@@ -54,6 +54,8 @@ def make_image(data, outputname, size=(4, 6), dpi=80, cmap = 'RdYlBu', add_value
         for col in range(np.size(data, 1)):
             for row in range(np.size(data, 0)):
                 str = int(data[row, col])
+                if str == -9:
+                    str = "NA"
                 ax.text(col-0.25, row+0.2, str)
     
     
@@ -123,12 +125,16 @@ file = np.random.randint(0,99, 150).reshape(15, 10)
 make_image(file, 'figures/focal_stat_in.png')
 
 # colormap for figures that show window
-cmap = mcolors.LinearSegmentedColormap.from_list("", [(1,1,1), (0,0,0.5)])
+cmap = mcolors.LinearSegmentedColormap.from_list("", [(1,1,1), (0,0,0.75)])
 
 
 # save outputs for circle neighborhood
 out = focal_statistics(file, Circle(3), "max")
 make_image(out, 'figures/circle_3_out_max.png')
+
+out = focal_statistics(file, Circle(2), "max", ignore_nodata = False)
+out = np.where(np.isnan(out), -9, out)
+make_image(out, 'figures/circle_3_out_max_ignore_false.png')
 
 out = focal_statistics(file, Circle(3), "mean")
 make_image(out, 'figures/circle_3_out_mean.png')
@@ -138,8 +144,10 @@ make_image(out, 'figures/circle_3_out_std.png')
 
 
 window = get_values(file, Circle(3), 7, 5, show_window = 1)
+cmap = mcolors.LinearSegmentedColormap.from_list("", [(1,1,1), (0,0.5,0)])
 make_image(file, 'figures/circle_3_out_window.png', show_window = True,
            window_type = "circle", window = window, cmap = cmap)
+cmap = mcolors.LinearSegmentedColormap.from_list("", [(1,1,1), (0,0,0.75)])
 make_image(file, 'figures/circle_3_out_window_no_values.png', add_values = False,
            show_window = True, window_type = "circle", window = window, cmap = cmap)
 
@@ -149,6 +157,9 @@ make_image(file, 'figures/circle_3_out_window_no_values.png', add_values = False
 out = focal_statistics(file, Wedge(3, 0, 135), "max")
 make_image(out, "figures/wedge_3_0_135_out_max.png")
 
+out = focal_statistics(file, Wedge(3, 0, 135), "max", ignore_nodata = False)
+make_image(out, "figures/wedge_3_0_135_out_max_ignore_false.png")
+
 out = focal_statistics(file, Wedge(3, 0, 135), "mean")
 make_image(out, "figures/wedge_3_0_135_out_mean.png")
 
@@ -156,9 +167,13 @@ out = focal_statistics(file, Wedge(3, 0, 135), "std")
 make_image(out, "figures/wedge_3_0_135_out_std.png")
 
 
+
+
 window = get_values(file, Wedge(3, 0, 135), 7, 5, show_window = 1)[0]
+cmap = mcolors.LinearSegmentedColormap.from_list("", [(1,1,1), (0,0.5,0)])
 make_image(file, 'figures/wedge_3_0_135_out_window.png', show_window = True,
            window_type = "wedge", window = window, cmap = cmap, start = 0, end = 135)
+cmap = mcolors.LinearSegmentedColormap.from_list("", [(1,1,1), (0,0,0.75)])
 make_image(file, 'figures/wedge_3_0_135_out_window_no_values.png', show_window = True, add_values = False,
            window_type = "wedge", window = window, cmap = cmap, start = 0, end = 135)
 
@@ -168,6 +183,9 @@ make_image(file, 'figures/wedge_3_0_135_out_window_no_values.png', show_window =
 # save outputs for rectangle neighborhood
 out = focal_statistics(file, Rectangle(6, 4), "max")
 make_image(out, "figures/rectangle_5_3_out_max.png")
+
+out = focal_statistics(file, Rectangle(6, 4), "max", ignore_nodata = False)
+make_image(out, "figures/rectangle_5_3_out_max_ignore_false.png")
 
 out = focal_statistics(file, Rectangle(6, 4), "mean")
 make_image(out, "figures/rectangle_5_3_out_mean.png")
@@ -179,8 +197,10 @@ make_image(out, "figures/rectangle_5_3_out_std.png")
 window = np.zeros(file.shape)
 window[6:10, 3:9] = 0.5
 window[7, 5] = 1
+cmap = mcolors.LinearSegmentedColormap.from_list("", [(1,1,1), (0,0.5,0)])
 make_image(file, 'figures/rectangle_5_3_out_window.png', show_window = True,
            window_type = "rectangle", window = window, cmap = cmap, corner = (3,8,6,9))
+cmap = mcolors.LinearSegmentedColormap.from_list("", [(1,1,1), (0,0,0.75)])
 make_image(file, 'figures/rectangle_5_3_out_window_no_values.png', show_window = True, add_values = False,
            window_type = "rectangle", window = window, cmap = cmap, corner = (3,8,6,9))
 
